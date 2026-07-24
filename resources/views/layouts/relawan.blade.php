@@ -13,12 +13,26 @@
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
 
     <style>
+        html { scroll-behavior: smooth; }
         body.bg-light { background-color: #f6f7f9 !important; }
-        .app-container { max-width: 1040px; }
+        /* Lebar container disamakan dengan area booking (Bootstrap .container default) */
         .table-responsive { -webkit-overflow-scrolling: touch; overflow-x: auto; }
         .table th, .table td { vertical-align: middle; }
         .table td.wrap { white-space: normal; word-break: break-word; }
         .main-actions { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+
+        /* Transisi halus untuk kartu, tombol, dan baris tabel */
+        .card { transition: box-shadow .18s ease, transform .18s ease; }
+        .card.shadow-sm:hover { box-shadow: 0 .5rem 1.2rem rgba(0,0,0,.08) !important; }
+        .btn { transition: all .15s ease; }
+        .table-hover tbody tr { transition: background-color .12s ease; }
+        .nav-link { transition: color .15s ease; }
+        main { animation: fadeInUp .28s ease both; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            main, .card, .btn { animation: none !important; transition: none !important; }
+        }
 
         /* badge-soft helpers used across the volunteer views */
         .badge-soft-success{ background:#d1e7dd; color:#0f5132; font-weight:600; }
@@ -51,8 +65,8 @@
     @endphp
 
     @auth
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
-        <div class="container app-container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm sticky-top">
+        <div class="container">
             <a class="navbar-brand fw-bold d-flex align-items-center gap-2"
                href="{{ $isAdminArea ? route('admin.pengajuan.index') : route('relawan.dashboard') }}">
                 <span>Asar Relawan</span>
@@ -138,7 +152,7 @@
     @endauth
 
     <main class="pb-5">
-        <div class="container app-container mt-4">
+        <div class="container mt-4">
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     <i class="bi bi-check-circle me-1"></i>{{ session('success') }}
@@ -182,7 +196,12 @@
                         confirmButtonText: 'Ya',
                         cancelButtonText: 'Batal',
                         confirmButtonColor: '#dc3545'
-                    }).then(function (r) { if (r.isConfirmed) form.submit(); });
+                    }).then(function (r) {
+                        if (r.isConfirmed) {
+                            if (window.__appLoading) window.__appLoading.show();
+                            form.submit();
+                        }
+                    });
                 });
             });
             // Flatpickr untuk input tanggal
@@ -192,6 +211,85 @@
                         defaultDate: el.value || null });
                 });
             }
+
+            // Auto-dismiss notifikasi sukses (biarkan daftar error validasi tetap tampil)
+            document.querySelectorAll('.alert-success, .alert-danger').forEach(function (el) {
+                if (el.querySelector('ul')) return;
+                setTimeout(function () {
+                    try { bootstrap.Alert.getOrCreateInstance(el).close(); } catch (e) { el.style.display = 'none'; }
+                }, 4500);
+            });
+
+            // Pratinjau gambar sebelum diunggah
+            document.querySelectorAll('input[type=file][accept*="image"]').forEach(function (input) {
+                input.addEventListener('change', function () {
+                    var file = input.files && input.files[0];
+                    if (!file) return;
+                    var prev = input.parentNode.querySelector('img.file-preview');
+                    if (!prev) {
+                        prev = document.createElement('img');
+                        prev.className = 'file-preview img-fluid rounded border mt-2 mb-2 d-block';
+                        prev.style.maxHeight = '220px';
+                        input.parentNode.insertBefore(prev, input.nextSibling);
+                    }
+                    prev.src = URL.createObjectURL(file);
+                });
+            });
+        });
+    </script>
+    {{-- Overlay loading global agar navigasi & submit terasa mulus --}}
+    <div id="global-loading-overlay" class="d-none" aria-hidden="true"
+         style="position:fixed;inset:0;z-index:2500;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.7);backdrop-filter:blur(2px);">
+        <div class="text-center">
+            <div class="spinner-border text-success" role="status" style="width:3rem;height:3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="mt-2 text-muted">Memuat...</div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var overlay = document.getElementById('global-loading-overlay');
+            if (!overlay) return;
+            var lastShown = 0;
+            function showLoading() {
+                overlay.classList.remove('d-none');
+                overlay.setAttribute('aria-hidden', 'false');
+                lastShown = Date.now();
+                setTimeout(function () { if (Date.now() - lastShown > 5000) hideLoading(); }, 6000);
+            }
+            function hideLoading() {
+                overlay.classList.add('d-none');
+                overlay.setAttribute('aria-hidden', 'true');
+            }
+            window.__appLoading = { show: showLoading, hide: hideLoading };
+            // Tampilkan saat submit form biasa (non-AJAX), kecuali yang opt-out / konfirmasi swal
+            document.querySelectorAll('form').forEach(function (f) {
+                if (f.dataset && f.dataset.noLoading === '1') return;
+                if (f.classList.contains('swal-confirm')) return; // overlay muncul setelah user klik "Ya"
+                f.addEventListener('submit', function (e) {
+                    if (e.defaultPrevented) return;
+                    showLoading();
+                });
+            });
+            // Form konfirmasi swal: tampilkan overlay tepat sebelum benar-benar submit
+            document.querySelectorAll('form.swal-confirm').forEach(function (f) {
+                f.addEventListener('submit', function () { /* handled by swal then real submit */ });
+            });
+            // Tampilkan saat klik link internal (pindah halaman)
+            document.addEventListener('click', function (e) {
+                var a = e.target.closest('a');
+                if (!a) return;
+                if (a.target === '_blank' || a.hasAttribute('download')) return;
+                var href = a.getAttribute('href') || '';
+                if (!href || href.startsWith('#')) return;
+                if (/^(mailto:|tel:|javascript:)/i.test(href)) return;
+                if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+                if (a.dataset && a.dataset.noLoading === '1') return;
+                showLoading();
+            }, { capture: true });
+            // Sembunyikan bila halaman dikembalikan dari cache (tombol Back)
+            window.addEventListener('pageshow', function () { hideLoading(); });
         });
     </script>
     @stack('scripts')

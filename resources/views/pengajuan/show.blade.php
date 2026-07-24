@@ -69,7 +69,7 @@
             <div class="card-body">
                 @if($pengajuan->status === 'ditugaskan')
                     <p class="text-muted small">Unggah foto bukti pelaksanaan untuk menandai pengajuan ini selesai (maks 5MB).</p>
-                    <form action="{{ route('pengajuan.selesai', $pengajuan) }}" method="post" enctype="multipart/form-data" data-no-loading="1">
+                    <form action="{{ route('pengajuan.selesai', $pengajuan) }}" method="post" enctype="multipart/form-data">
                         @csrf
                         <input type="file" name="bukti_file" accept="image/*" class="form-control mb-2" required>
                         <button class="btn btn-success w-100"><i class="bi bi-cloud-upload me-1"></i>Unggah & Selesaikan</button>
