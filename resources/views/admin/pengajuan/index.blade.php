@@ -5,16 +5,42 @@
 @section('content')
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
     <div>
-        <h3 class="mb-0">Pengajuan Masuk</h3>
-        <div class="text-muted small">Cari relawan yang cocok lalu tugaskan ke setiap pengajuan.</div>
+        <h3 class="mb-0">Pengajuan Relawan</h3>
+        <div class="text-muted small">Verifikasi pengajuan, lalu cari &amp; tugaskan relawan sesuai kebutuhan.</div>
     </div>
+</div>
+
+{{-- Ringkasan antrean --}}
+<div class="row g-2 mb-3">
+    @php
+        $queue = [
+            ['label' => 'Menunggu Verifikasi', 'value' => $counts['diajukan'],   'color' => 'text-secondary', 'icon' => 'bi-inbox', 'status' => 'diajukan'],
+            ['label' => 'Perlu Penugasan',     'value' => $counts['disetujui'],  'color' => 'text-info',      'icon' => 'bi-search', 'status' => 'disetujui'],
+            ['label' => 'Sedang Berjalan',     'value' => $counts['ditugaskan'], 'color' => 'text-warning',   'icon' => 'bi-person-check', 'status' => 'ditugaskan'],
+        ];
+    @endphp
+    @foreach($queue as $q)
+    <div class="col-12 col-md-4">
+        <a href="{{ route('admin.pengajuan.index', ['status' => $q['status']]) }}" class="text-decoration-none">
+            <div class="card border-0 shadow-sm stat-card">
+                <div class="card-body d-flex align-items-center justify-content-between py-3">
+                    <div>
+                        <div class="text-muted small">{{ $q['label'] }}</div>
+                        <div class="h3 mb-0 {{ $q['color'] }}">{{ $q['value'] }}</div>
+                    </div>
+                    <i class="bi {{ $q['icon'] }} fs-3 {{ $q['color'] }}"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+    @endforeach
 </div>
 
 <div class="card border-0 shadow-sm">
     <div class="card-body">
         <form method="get" class="row g-2 mb-3">
             <div class="col-12 col-md-8">
-                <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm" placeholder="Cari judul / kebutuhan / nama pengaju...">
+                <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm" placeholder="Cari kegiatan / divisi / pengaju...">
             </div>
             <div class="col-8 col-md-2">
                 <select name="status" class="form-select form-select-sm">
@@ -30,36 +56,38 @@
         </form>
 
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover table-stack align-middle mb-0">
                 <thead><tr>
-                    <th class="text-muted">Judul</th>
-                    <th class="text-muted">Pengaju</th>
-                    <th class="text-muted">Bidang</th>
-                    <th class="text-muted">Jml</th>
-                    <th class="text-muted">Relawan</th>
-                    <th class="text-muted">Status</th>
-                    <th class="text-muted text-end">Aksi</th>
+                    <th>Kegiatan</th>
+                    <th>Pengaju</th>
+                    <th>Divisi</th>
+                    <th>Kebutuhan</th>
+                    <th>Status</th>
+                    <th class="text-end">Aksi</th>
                 </tr></thead>
                 <tbody>
                     @forelse($pengajuan as $p)
                     <tr>
-                        <td class="wrap fw-semibold">{{ $p->judul }}<div class="small text-muted">{{ $p->created_at->format('d M Y') }}</div></td>
-                        <td>{{ $p->user->name ?? '—' }}</td>
-                        <td>{{ $p->bidang->nama ?? '—' }}</td>
-                        <td>{{ $p->jumlah_relawan }}</td>
-                        <td>{{ $p->relawan->nama ?? '—' }}</td>
-                        <td>@include('pengajuan._status', ['status' => $p->status])</td>
-                        <td class="text-end">
-                            <div class="d-flex gap-1 justify-content-end">
-                                @if(in_array($p->status, ['diajukan', 'dicari', 'ditugaskan']))
-                                    <a href="{{ route('admin.pengajuan.assign_form', $p) }}" class="btn btn-sm btn-success" title="Cari & Assign"><i class="bi bi-person-plus me-1"></i>{{ $p->status === 'ditugaskan' ? 'Ganti' : 'Assign' }}</a>
+                        <td class="cell-title wrap">{{ $p->judul }}<div class="small text-muted fw-normal">{{ $p->created_at->format('d M Y') }}</div></td>
+                        <td data-label="Pengaju">{{ $p->user->name ?? '—' }}</td>
+                        <td data-label="Divisi">{{ $p->divisi ?? '—' }}</td>
+                        <td data-label="Kebutuhan">{{ $p->kebutuhan_count }} baris</td>
+                        <td data-label="Status">@include('pengajuan._status', ['status' => $p->status])</td>
+                        <td class="cell-actions text-end">
+                            <div class="d-flex gap-1 justify-content-end flex-wrap">
+                                @if($p->status === 'diajukan')
+                                    <a href="{{ route('admin.pengajuan.show', $p) }}" class="btn btn-sm btn-primary"><i class="bi bi-clipboard-check me-1"></i>Verifikasi</a>
+                                @elseif(in_array($p->status, ['disetujui', 'ditugaskan']))
+                                    <a href="{{ route('admin.pengajuan.assign_form', $p) }}" class="btn btn-sm btn-success"><i class="bi bi-person-plus me-1"></i>Penugasan</a>
+                                    <a href="{{ route('admin.pengajuan.show', $p) }}" class="btn btn-sm btn-light border">Detail</a>
+                                @else
+                                    <a href="{{ route('admin.pengajuan.show', $p) }}" class="btn btn-sm btn-light border">Detail</a>
                                 @endif
-                                <a href="{{ route('admin.pengajuan.show', $p) }}" class="btn btn-sm btn-light border">Detail</a>
                             </div>
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" class="text-center text-muted py-4">Belum ada pengajuan masuk.</td></tr>
+                    <tr class="no-card"><td colspan="6"><div class="empty-state"><i class="bi bi-inboxes"></i>Belum ada pengajuan masuk.</div></td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -8,27 +8,28 @@ use Illuminate\Support\Facades\Auth;
 
 class RelawanDashboardController extends Controller
 {
-    // Beranda pengaju: ringkasan status pengajuan + notifikasi penugasan.
+    // Beranda: ringkasan status seluruh pengajuan organisasi + notifikasi aksi milik pengaju sendiri.
     public function index(Request $request)
     {
         $userId = Auth::id();
 
+        // Ringkasan & daftar terbaru mencakup pengajuan dari semua pengaju.
         $counts = [
-            'total'      => Pengajuan::where('user_id', $userId)->count(),
-            'diajukan'   => Pengajuan::where('user_id', $userId)->whereIn('status', ['diajukan', 'dicari'])->count(),
-            'ditugaskan' => Pengajuan::where('user_id', $userId)->where('status', 'ditugaskan')->count(),
-            'selesai'    => Pengajuan::where('user_id', $userId)->where('status', 'selesai')->count(),
+            'total'      => Pengajuan::count(),
+            'menunggu'   => Pengajuan::whereIn('status', ['diajukan', 'disetujui'])->count(),
+            'ditugaskan' => Pengajuan::where('status', 'ditugaskan')->count(),
+            'selesai'    => Pengajuan::where('status', 'selesai')->count(),
         ];
 
-        // Notifikasi: pengajuan yang butuh aksi pengaju (upload bukti / revisi)
-        $needAction = Pengajuan::with('relawan')
+        // "Butuh aksi" tetap khusus pengajuan milik akun ini, karena hanya pemilik
+        // yang bisa memperbaiki revisi / mengunggah laporan.
+        $needAction = Pengajuan::withCount('kebutuhan')
             ->where('user_id', $userId)
-            ->whereIn('status', ['ditugaskan', 'revisi'])
+            ->whereIn('status', ['revisi', 'ditugaskan'])
             ->orderByDesc('updated_at')
             ->get();
 
-        $recent = Pengajuan::with(['relawan', 'bidang'])
-            ->where('user_id', $userId)
+        $recent = Pengajuan::with('user')->withCount('kebutuhan')
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();

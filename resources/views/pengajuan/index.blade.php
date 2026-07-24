@@ -1,11 +1,14 @@
 @extends('layouts.relawan')
 
-@section('title', 'Pengajuan Saya')
+@section('title', 'Semua Pengajuan')
 
 @section('content')
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-    <h3 class="mb-0">Pengajuan Saya</h3>
-    <a href="{{ route('pengajuan.create') }}" class="btn btn-success"><i class="bi bi-plus-lg me-1"></i>Buat Pengajuan</a>
+    <div>
+        <h3 class="mb-0">Semua Pengajuan</h3>
+        <div class="text-muted small">Seluruh pengajuan kebutuhan relawan dari semua pengaju.</div>
+    </div>
+    <a href="{{ route('pengajuan.create') }}" class="btn btn-success head-actions"><i class="bi bi-plus-lg me-1"></i>Buat Pengajuan</a>
 </div>
 
 <div class="card border-0 shadow-sm">
@@ -28,29 +31,29 @@
         </form>
 
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover table-stack align-middle mb-0">
                 <thead><tr>
-                    <th class="text-muted">Judul</th>
-                    <th class="text-muted">Bidang</th>
-                    <th class="text-muted">Jml</th>
-                    <th class="text-muted">Tanggal</th>
-                    <th class="text-muted">Relawan</th>
-                    <th class="text-muted">Status</th>
-                    <th class="text-muted text-end">Aksi</th>
+                    <th>Kegiatan</th>
+                    <th>Pengaju</th>
+                    <th>Divisi</th>
+                    <th>Kebutuhan</th>
+                    <th>Waktu</th>
+                    <th>Status</th>
+                    <th class="text-end">Aksi</th>
                 </tr></thead>
                 <tbody>
                     @forelse($pengajuan as $p)
                     <tr>
-                        <td class="wrap fw-semibold">{{ $p->judul }}</td>
-                        <td>{{ $p->bidang->nama ?? '—' }}</td>
-                        <td>{{ $p->jumlah_relawan }}</td>
-                        <td>{{ optional($p->tanggal_kegiatan)->format('d M Y') ?? '—' }}</td>
-                        <td>{{ $p->relawan->nama ?? '—' }}</td>
-                        <td>@include('pengajuan._status', ['status' => $p->status])</td>
-                        <td class="text-end"><a href="{{ route('pengajuan.show', $p) }}" class="btn btn-sm btn-light border">Detail</a></td>
+                        <td class="cell-title wrap">{{ $p->judul }}</td>
+                        <td data-label="Pengaju">{{ $p->nama_pic ?? ($p->user->name ?? '—') }}</td>
+                        <td data-label="Divisi">{{ $p->divisi ?? '—' }}</td>
+                        <td data-label="Kebutuhan">{{ $p->kebutuhan_count }} baris</td>
+                        <td data-label="Waktu">{{ optional($p->waktu_mulai)->format('d M Y') ?? '—' }}</td>
+                        <td data-label="Status">@include('pengajuan._status', ['status' => $p->status])</td>
+                        <td class="cell-actions text-end"><a href="{{ route('pengajuan.show', $p) }}" class="btn btn-sm btn-light border">Detail</a></td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" class="text-center text-muted py-4">Belum ada pengajuan.</td></tr>
+                    <tr class="no-card"><td colspan="7"><div class="empty-state"><i class="bi bi-inbox"></i>Belum ada pengajuan.</div></td></tr>
                     @endforelse
                 </tbody>
             </table>

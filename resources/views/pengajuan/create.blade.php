@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="d-flex align-items-center gap-2 mb-3">
-    <a href="{{ route('pengajuan.index') }}" class="btn btn-light border btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <a href="{{ route('pengajuan.index') }}" class="btn-back"><i class="bi bi-arrow-left"></i></a>
     <h3 class="mb-0">Buat Pengajuan Relawan</h3>
 </div>
 
@@ -13,7 +13,7 @@
         <form action="{{ route('pengajuan.store') }}" method="post">
             @csrf
             @include('pengajuan._form')
-            <div class="mt-4 d-flex gap-2">
+            <div class="mt-4 d-flex gap-2 main-actions">
                 <button type="submit" class="btn btn-success"><i class="bi bi-send me-1"></i>Ajukan</button>
                 <a href="{{ route('pengajuan.index') }}" class="btn btn-light border">Batal</a>
             </div>

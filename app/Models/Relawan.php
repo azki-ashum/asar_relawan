@@ -13,6 +13,8 @@ class Relawan extends Model
 
     protected $fillable = [
         'nama',
+        'jenis',
+        'jenis_kelamin',
         'kontak',
         'email',
         'domisili',
@@ -22,7 +24,16 @@ class Relawan extends Model
         'catatan',
     ];
 
-    /** Label & style helper untuk status relawan. */
+    /** Jenis relawan — sama dengan taksonomi kebutuhan. */
+    public const JENIS = KebutuhanRelawan::JENIS;
+
+    /** Jenis kelamin relawan (individu). */
+    public const JENIS_KELAMIN = [
+        'L' => 'Laki-laki',
+        'P' => 'Perempuan',
+    ];
+
+    /** Status ketersediaan relawan. */
     public const STATUSES = [
         'tersedia'   => ['label' => 'Tersedia',   'class' => 'badge-soft-success'],
         'ditugaskan' => ['label' => 'Ditugaskan', 'class' => 'badge-soft-warning'],
@@ -34,8 +45,13 @@ class Relawan extends Model
         return $this->belongsTo(BidangRelawan::class, 'bidang_relawan_id');
     }
 
-    public function pengajuan()
+    public function kebutuhan()
     {
-        return $this->hasMany(Pengajuan::class, 'relawan_id');
+        return $this->hasMany(KebutuhanRelawan::class, 'relawan_id');
+    }
+
+    public function jenisLabel(): string
+    {
+        return self::JENIS[$this->jenis] ?? ucfirst((string) $this->jenis);
     }
 }

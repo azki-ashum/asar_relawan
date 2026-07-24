@@ -30,7 +30,7 @@ class PengajuanBaruMail extends Mailable implements ShouldQueue
         return new Content(
             markdown: 'emails.pengajuan-baru',
             with: [
-                'pengajuan' => $this->pengajuan->loadMissing(['user', 'bidang']),
+                'pengajuan' => $this->pengajuan->loadMissing(['user', 'kebutuhan']),
             ],
         );
     }

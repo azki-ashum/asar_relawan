@@ -3,17 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pengajuan;
-use App\Models\BidangRelawan;
+use App\Models\KebutuhanRelawan;
 use App\Models\User;
 use App\Mail\PengajuanBaruMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 
 class PengajuanController extends Controller
 {
-    /** Pastikan pengaju hanya mengakses pengajuan miliknya. */
     protected function authorizeOwner(Pengajuan $pengajuan): void
     {
         if ($pengajuan->user_id !== Auth::id()) {
@@ -21,18 +22,47 @@ class PengajuanController extends Controller
         }
     }
 
-    // Daftar pengajuan milik pengaju saat ini
+    /** Aturan validasi header + baris kebutuhan (dipakai store & update). */
+    protected function rules(): array
+    {
+        return [
+            'direktorat'                    => 'nullable|string|max:255',
+            'divisi'                        => 'nullable|string|max:255',
+            'nama_pic'                      => 'nullable|string|max:255',
+            'judul'                         => 'required|string|max:255',
+            'waktu_mulai'                   => 'nullable|date',
+            'waktu_selesai'                 => 'nullable|date|after_or_equal:waktu_mulai',
+            'lokasi'                        => 'nullable|string|max:255',
+            'keterangan'                    => 'nullable|string',
+            'kebutuhan'                     => 'required|array|min:1',
+            'kebutuhan.*.jenis_relawan'     => ['required', Rule::in(array_keys(KebutuhanRelawan::JENIS))],
+            'kebutuhan.*.jenis_kelamin'     => ['required', Rule::in(array_keys(KebutuhanRelawan::JENIS_KELAMIN))],
+            'kebutuhan.*.detail_tugas'      => 'nullable|string',
+            'kebutuhan.*.nominal_apresiasi' => 'nullable|integer|min:0|max:1000000000',
+        ];
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'kebutuhan.required' => 'Minimal satu baris kebutuhan relawan harus diisi.',
+            'kebutuhan.*.jenis_relawan.required' => 'Jenis relawan wajib dipilih.',
+            'kebutuhan.*.jenis_kelamin.required' => 'Jenis kelamin wajib dipilih.',
+        ];
+    }
+
+    // Daftar seluruh pengajuan organisasi (bukan hanya milik pengaju saat ini)
     public function index(Request $request)
     {
-        $query = Pengajuan::with(['relawan', 'bidang'])
-            ->where('user_id', Auth::id())
+        $query = Pengajuan::with('user')->withCount('kebutuhan')
             ->orderByDesc('created_at');
 
         if ($search = $request->get('q')) {
             $query->where(function ($q) use ($search) {
                 $q->where('judul', 'like', "%$search%")
-                  ->orWhere('kebutuhan', 'like', "%$search%")
-                  ->orWhere('lokasi', 'like', "%$search%");
+                  ->orWhere('lokasi', 'like', "%$search%")
+                  ->orWhere('divisi', 'like', "%$search%")
+                  ->orWhereHas('user', fn ($uq) => $uq->where('name', 'like', "%$search%"));
             });
         }
 
@@ -47,116 +77,121 @@ class PengajuanController extends Controller
 
     public function create()
     {
-        $bidangs = BidangRelawan::orderBy('nama')->get();
-        return view('pengajuan.create', compact('bidangs'));
+        return view('pengajuan.create');
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'judul'             => 'required|string|max:255',
-            'kebutuhan'         => 'required|string',
-            'bidang_relawan_id' => 'nullable|exists:bidang_relawan,id',
-            'jumlah_relawan'    => 'required|integer|min:1|max:1000',
-            'tanggal_kegiatan'  => 'nullable|date',
-            'lokasi'            => 'nullable|string|max:255',
-        ]);
+        $data = $request->validate($this->rules(), $this->messages());
 
-        $data['user_id'] = Auth::id();
-        $data['status']  = 'diajukan';
+        $pengajuan = DB::transaction(function () use ($data) {
+            $pengajuan = Pengajuan::create([
+                'user_id'        => Auth::id(),
+                'direktorat'     => $data['direktorat'] ?? null,
+                'divisi'         => $data['divisi'] ?? null,
+                'nama_pic'       => $data['nama_pic'] ?? Auth::user()->name,
+                'judul'          => $data['judul'],
+                'waktu_mulai'    => $data['waktu_mulai'] ?? null,
+                'waktu_selesai'  => $data['waktu_selesai'] ?? null,
+                'lokasi'         => $data['lokasi'] ?? null,
+                'keterangan'     => $data['keterangan'] ?? null,
+                'jumlah_relawan' => count($data['kebutuhan']),
+                'status'         => 'diajukan',
+            ]);
+            $this->syncKebutuhan($pengajuan, $data['kebutuhan']);
+            return $pengajuan;
+        });
 
-        $pengajuan = Pengajuan::create($data);
-
-        // Notifikasi email ke admin (Fase 5). Dibungkus try/catch agar kegagalan
-        // pengiriman email tidak menggagalkan pembuatan pengajuan.
+        // Notifikasi email ke admin (SOP Bagian 1: Review & Verifikasi)
         try {
-            $adminEmails = User::where('role', 'like', 'admin%')
-                ->whereNotNull('email')
-                ->pluck('email')
-                ->filter()
-                ->unique()
-                ->values();
-
+            $adminEmails = User::where('role', 'like', 'admin%')->whereNotNull('email')
+                ->pluck('email')->filter()->unique()->values();
             if ($adminEmails->isNotEmpty()) {
                 Mail::to($adminEmails->all())->queue(new PengajuanBaruMail($pengajuan));
             }
         } catch (\Throwable $e) {
-            Log::warning('Gagal mengirim email pengajuan baru', ['pengajuan_id' => $pengajuan->id, 'error' => $e->getMessage()]);
+            Log::warning('Gagal kirim email pengajuan baru', ['id' => $pengajuan->id, 'error' => $e->getMessage()]);
         }
 
-        Log::info('Pengajuan dibuat', ['pengajuan_id' => $pengajuan->id, 'user_id' => Auth::id()]);
-        return redirect()->route('pengajuan.show', $pengajuan)->with('success', 'Pengajuan berhasil dibuat. Admin akan mencarikan relawan.');
+        return redirect()->route('pengajuan.show', $pengajuan)
+            ->with('success', 'Pengajuan terkirim. Menunggu verifikasi Tim Ksatria.');
     }
 
+    // Detail pengajuan bisa dilihat siapa saja yang login (read-only untuk yang bukan pemilik).
+    // Aksi ubah/batalkan/selesaikan tetap dibatasi hanya untuk pemilik, lihat authorizeOwner().
     public function show(Pengajuan $pengajuan)
     {
-        $this->authorizeOwner($pengajuan);
-        $pengajuan->load(['relawan.bidang', 'bidang', 'user']);
+        $pengajuan->load(['kebutuhan.relawan', 'user']);
         return view('pengajuan.show', compact('pengajuan'));
     }
 
     public function edit(Pengajuan $pengajuan)
     {
         $this->authorizeOwner($pengajuan);
-
-        if (!in_array($pengajuan->status, ['diajukan', 'dicari'])) {
+        if (!in_array($pengajuan->status, ['diajukan', 'revisi'])) {
             return redirect()->route('pengajuan.show', $pengajuan)
-                ->with('error', 'Pengajuan hanya bisa diedit sebelum relawan ditugaskan.');
+                ->with('error', 'Pengajuan hanya bisa diedit selagi menunggu verifikasi atau saat diminta revisi.');
         }
-
-        $bidangs = BidangRelawan::orderBy('nama')->get();
-        return view('pengajuan.edit', compact('pengajuan', 'bidangs'));
+        $pengajuan->load('kebutuhan');
+        return view('pengajuan.edit', compact('pengajuan'));
     }
 
     public function update(Request $request, Pengajuan $pengajuan)
     {
         $this->authorizeOwner($pengajuan);
-
-        if (!in_array($pengajuan->status, ['diajukan', 'dicari'])) {
+        if (!in_array($pengajuan->status, ['diajukan', 'revisi'])) {
             return redirect()->route('pengajuan.show', $pengajuan)
-                ->with('error', 'Pengajuan hanya bisa diedit sebelum relawan ditugaskan.');
+                ->with('error', 'Pengajuan sudah diproses dan tidak bisa diedit.');
         }
 
-        $data = $request->validate([
-            'judul'             => 'required|string|max:255',
-            'kebutuhan'         => 'required|string',
-            'bidang_relawan_id' => 'nullable|exists:bidang_relawan,id',
-            'jumlah_relawan'    => 'required|integer|min:1|max:1000',
-            'tanggal_kegiatan'  => 'nullable|date',
-            'lokasi'            => 'nullable|string|max:255',
-        ]);
+        $data = $request->validate($this->rules(), $this->messages());
+        $wasRevisi = $pengajuan->status === 'revisi';
 
-        $pengajuan->update($data);
+        DB::transaction(function () use ($pengajuan, $data, $wasRevisi) {
+            $pengajuan->update([
+                'direktorat'     => $data['direktorat'] ?? null,
+                'divisi'         => $data['divisi'] ?? null,
+                'nama_pic'       => $data['nama_pic'] ?? $pengajuan->nama_pic,
+                'judul'          => $data['judul'],
+                'waktu_mulai'    => $data['waktu_mulai'] ?? null,
+                'waktu_selesai'  => $data['waktu_selesai'] ?? null,
+                'lokasi'         => $data['lokasi'] ?? null,
+                'keterangan'     => $data['keterangan'] ?? null,
+                'jumlah_relawan' => count($data['kebutuhan']),
+                // Kirim ulang setelah revisi → kembali ke antrean verifikasi
+                'status'         => $wasRevisi ? 'diajukan' : $pengajuan->status,
+                'catatan_revisi' => $wasRevisi ? null : $pengajuan->catatan_revisi,
+            ]);
+            // Belum ada penugasan pada tahap ini → aman hapus & buat ulang baris
+            $pengajuan->kebutuhan()->delete();
+            $this->syncKebutuhan($pengajuan, $data['kebutuhan']);
+        });
 
-        return redirect()->route('pengajuan.show', $pengajuan)->with('success', 'Pengajuan diperbarui.');
+        $msg = $wasRevisi ? 'Pengajuan diperbaiki & dikirim ulang untuk verifikasi.' : 'Pengajuan diperbarui.';
+        return redirect()->route('pengajuan.show', $pengajuan)->with('success', $msg);
     }
 
-    // Pengaju membatalkan/menghapus pengajuan (hanya sebelum ditugaskan)
     public function destroy(Pengajuan $pengajuan)
     {
         $this->authorizeOwner($pengajuan);
-
-        if (!in_array($pengajuan->status, ['diajukan', 'dicari'])) {
+        if (!in_array($pengajuan->status, ['diajukan', 'revisi', 'ditolak'])) {
             return back()->with('error', 'Pengajuan yang sudah diproses tidak dapat dibatalkan.');
         }
-
         $pengajuan->delete();
         return redirect()->route('pengajuan.index')->with('success', 'Pengajuan dibatalkan.');
     }
 
-    // ----- Fase 4: Bukti implementasi -----
-
-    // Pengaju menutup pengajuan dengan foto bukti implementasi
+    // ---- SOP Bagian 3: Deployment → Evaluasi & Pelaporan (selesai) ----
     public function selesai(Request $request, Pengajuan $pengajuan)
     {
         $this->authorizeOwner($pengajuan);
-
         if ($pengajuan->status !== 'ditugaskan') {
-            return back()->with('error', 'Bukti hanya bisa diunggah saat pengajuan berstatus "Ditugaskan".');
+            return back()->with('error', 'Laporan hanya bisa dikirim setelah relawan ditugaskan.');
         }
 
-        $request->validate([
-            'bukti_file' => 'required|image|max:5120', // <= 5MB
+        $data = $request->validate([
+            'bukti_file' => 'required|image|max:5120',
+            'laporan'    => 'nullable|string',
         ]);
 
         $f = $request->file('bukti_file');
@@ -164,57 +199,49 @@ class PengajuanController extends Controller
 
         $pengajuan->update([
             'bukti_implementasi' => [
-                'path'        => $path,
-                'original'    => $f->getClientOriginalName(),
-                'uploaded_by' => Auth::id(),
-                'uploaded_at' => now()->toDateTimeString(),
+                'path' => $path, 'original' => $f->getClientOriginalName(),
+                'uploaded_by' => Auth::id(), 'uploaded_at' => now()->toDateTimeString(),
             ],
+            'laporan'    => $data['laporan'] ?? $pengajuan->laporan,
             'status'     => 'selesai',
             'selesai_at' => now(),
         ]);
+        $this->freeRelawan($pengajuan);
 
-        // Bebaskan relawan agar bisa ditugaskan lagi
-        if ($pengajuan->relawan) {
-            $pengajuan->relawan->update(['status' => 'tersedia']);
-        }
-
-        Log::info('Pengajuan diselesaikan', ['pengajuan_id' => $pengajuan->id, 'user_id' => Auth::id()]);
-        return redirect()->route('pengajuan.show', $pengajuan)->with('success', 'Bukti terunggah. Pengajuan selesai. Terima kasih!');
+        return redirect()->route('pengajuan.show', $pengajuan)
+            ->with('success', 'Laporan terkirim. Pengajuan selesai. Terima kasih!');
     }
 
-    // Pengaju mengunggah ulang bukti setelah admin meminta revisi
+    // Kirim ulang bukti/laporan setelah admin meminta revisi laporan
     public function resubmit(Request $request, Pengajuan $pengajuan)
     {
         $this->authorizeOwner($pengajuan);
-
-        if ($pengajuan->status !== 'revisi') {
-            return back()->with('error', 'Pengajuan ini tidak dalam status revisi.');
+        if ($pengajuan->status !== 'ditugaskan' || !$pengajuan->catatan_revisi) {
+            return back()->with('error', 'Tidak ada permintaan revisi laporan yang aktif.');
         }
+        return $this->selesai($request, $pengajuan);
+    }
 
-        $request->validate([
-            'bukti_file' => 'required|image|max:5120',
-        ]);
-
-        $f = $request->file('bukti_file');
-        $path = $f->store('bukti_implementasi', 'public');
-
-        $pengajuan->update([
-            'bukti_implementasi' => [
-                'path'        => $path,
-                'original'    => $f->getClientOriginalName(),
-                'uploaded_by' => Auth::id(),
-                'uploaded_at' => now()->toDateTimeString(),
-            ],
-            'status'         => 'selesai',
-            'selesai_at'     => now(),
-            'catatan_revisi' => null,
-        ]);
-
-        if ($pengajuan->relawan) {
-            $pengajuan->relawan->update(['status' => 'tersedia']);
+    // ---- Helpers ----
+    protected function syncKebutuhan(Pengajuan $pengajuan, array $rows): void
+    {
+        foreach ($rows as $row) {
+            $pengajuan->kebutuhan()->create([
+                'jenis_relawan'     => $row['jenis_relawan'],
+                'jenis_kelamin'     => $row['jenis_kelamin'],
+                'detail_tugas'      => $row['detail_tugas'] ?? null,
+                'nominal_apresiasi' => $row['nominal_apresiasi'] ?? null,
+            ]);
         }
+    }
 
-        Log::info('Pengajuan resubmit setelah revisi', ['pengajuan_id' => $pengajuan->id, 'user_id' => Auth::id()]);
-        return redirect()->route('pengajuan.show', $pengajuan)->with('success', 'Bukti berhasil diunggah ulang. Pengajuan ditandai selesai.');
+    protected function freeRelawan(Pengajuan $pengajuan): void
+    {
+        $pengajuan->loadMissing('kebutuhan.relawan');
+        foreach ($pengajuan->kebutuhan as $k) {
+            if ($k->relawan) {
+                $k->relawan->update(['status' => 'tersedia']);
+            }
+        }
     }
 }

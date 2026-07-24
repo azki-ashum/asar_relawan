@@ -4,12 +4,20 @@
         <label class="form-label">Nama <span class="text-danger">*</span></label>
         <input type="text" name="nama" class="form-control" value="{{ old('nama', $relawan->nama ?? '') }}" required>
     </div>
-    <div class="col-12 col-md-6">
-        <label class="form-label">Bidang Relawan</label>
-        <select name="bidang_relawan_id" class="form-select">
-            <option value="">— Pilih bidang —</option>
-            @foreach($bidangs as $b)
-                <option value="{{ $b->id }}" @selected(old('bidang_relawan_id', $relawan->bidang_relawan_id ?? '') == $b->id)>{{ $b->nama }}</option>
+    <div class="col-12 col-md-3">
+        <label class="form-label">Jenis Relawan <span class="text-danger">*</span></label>
+        <select name="jenis" class="form-select" required>
+            @foreach(\App\Models\Relawan::JENIS as $key => $label)
+                <option value="{{ $key }}" @selected(old('jenis', $relawan->jenis ?? '') === $key)>{{ $label }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div class="col-12 col-md-3">
+        <label class="form-label">Jenis Kelamin</label>
+        <select name="jenis_kelamin" class="form-select">
+            <option value="">—</option>
+            @foreach(\App\Models\Relawan::JENIS_KELAMIN as $key => $label)
+                <option value="{{ $key }}" @selected(old('jenis_kelamin', $relawan->jenis_kelamin ?? '') === $key)>{{ $label }}</option>
             @endforeach
         </select>
     </div>
@@ -33,9 +41,18 @@
             @endforeach
         </select>
     </div>
+    <div class="col-12 col-md-6">
+        <label class="form-label">Bidang / Kelompok <span class="text-muted small">(opsional)</span></label>
+        <select name="bidang_relawan_id" class="form-select">
+            <option value="">— tanpa bidang —</option>
+            @foreach($bidangs as $b)
+                <option value="{{ $b->id }}" @selected(old('bidang_relawan_id', $relawan->bidang_relawan_id ?? '') == $b->id)>{{ $b->nama }}</option>
+            @endforeach
+        </select>
+    </div>
     <div class="col-12">
         <label class="form-label">Keahlian / Skill</label>
-        <textarea name="keahlian" class="form-control" rows="2" placeholder="mis. P3K, logistik, dokumentasi...">{{ old('keahlian', $relawan->keahlian ?? '') }}</textarea>
+        <textarea name="keahlian" class="form-control" rows="2" placeholder="mis. P3K, mengemudi, dokumentasi...">{{ old('keahlian', $relawan->keahlian ?? '') }}</textarea>
     </div>
     <div class="col-12">
         <label class="form-label">Catatan</label>

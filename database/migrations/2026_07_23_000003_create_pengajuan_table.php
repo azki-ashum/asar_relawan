@@ -11,21 +11,29 @@ return new class extends Migration
         Schema::create('pengajuan', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete(); // pengaju
-            $table->foreignId('relawan_id')->nullable()
-                  ->constrained('relawan')->nullOnDelete();                        // diisi saat assign
-            $table->string('judul');
-            $table->text('kebutuhan');                                             // deskripsi kebutuhan SDM
-            $table->foreignId('bidang_relawan_id')->nullable()
-                  ->constrained('bidang_relawan')->nullOnDelete();
-            $table->integer('jumlah_relawan')->default(1);
-            $table->date('tanggal_kegiatan')->nullable();
-            $table->string('lokasi')->nullable();
-            $table->enum('status', ['diajukan', 'dicari', 'ditugaskan', 'selesai', 'ditolak', 'revisi'])
+
+            // ---- Header (mengikuti Form Pengajuan Relawan Ksatria) ----
+            $table->string('direktorat')->nullable();
+            $table->string('divisi')->nullable();
+            $table->string('nama_pic')->nullable();       // Nama PIC / Pengaju
+            $table->string('judul');                      // Nama Kegiatan
+            $table->dateTime('waktu_mulai')->nullable();  // Waktu Mulai Pelaksanaan
+            $table->dateTime('waktu_selesai')->nullable();
+            $table->string('lokasi')->nullable();         // Lokasi Kegiatan
+            $table->text('keterangan')->nullable();
+            $table->integer('jumlah_relawan')->default(1); // Jumlah relawan yang diajukan
+
+            // ---- Status mengikuti SOP (Approval → Penugasan → Deployment) ----
+            $table->enum('status', ['diajukan', 'revisi', 'disetujui', 'ditugaskan', 'selesai', 'ditolak'])
                   ->default('diajukan');
-            $table->json('bukti_implementasi')->nullable();                        // path foto
-            $table->text('catatan_revisi')->nullable();
+            $table->text('catatan_revisi')->nullable();   // catatan admin saat verifikasi / minta revisi
             $table->integer('revisi_count')->default(0);
+
+            // ---- Deployment / Evaluasi & Pelaporan (SOP Bagian 3) ----
+            $table->json('bukti_implementasi')->nullable();
+            $table->text('laporan')->nullable();          // evaluasi & pelaporan oleh pengaju
             $table->timestamp('selesai_at')->nullable();
+
             $table->timestamps();
         });
     }

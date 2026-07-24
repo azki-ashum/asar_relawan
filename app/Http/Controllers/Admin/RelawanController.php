@@ -37,8 +37,8 @@ class RelawanController extends Controller
             });
         }
 
-        if ($bidang = $request->get('bidang_relawan_id')) {
-            $query->where('bidang_relawan_id', $bidang);
+        if ($jenis = $request->get('jenis')) {
+            $query->where('jenis', $jenis);
         }
 
         if ($status = $request->get('status')) {
@@ -63,6 +63,8 @@ class RelawanController extends Controller
 
         $data = $request->validate([
             'nama'              => 'required|string|max:255',
+            'jenis'             => ['required', Rule::in(array_keys(Relawan::JENIS))],
+            'jenis_kelamin'     => ['nullable', Rule::in(array_keys(Relawan::JENIS_KELAMIN))],
             'kontak'            => 'nullable|string|max:100',
             'email'             => 'nullable|email|max:255',
             'domisili'          => 'nullable|string|max:255',
@@ -91,6 +93,8 @@ class RelawanController extends Controller
 
         $data = $request->validate([
             'nama'              => 'required|string|max:255',
+            'jenis'             => ['required', Rule::in(array_keys(Relawan::JENIS))],
+            'jenis_kelamin'     => ['nullable', Rule::in(array_keys(Relawan::JENIS_KELAMIN))],
             'kontak'            => 'nullable|string|max:100',
             'email'             => 'nullable|email|max:255',
             'domisili'          => 'nullable|string|max:255',

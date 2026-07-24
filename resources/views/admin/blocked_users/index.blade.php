@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.relawan')
 
 @section('title', 'Blocked Users')
 
@@ -23,10 +23,10 @@
 <div class="card">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-sm table-striped mb-0 align-middle">
+            <table class="table table-sm table-striped table-stack mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th style="width:40px;">#</th>
+                        <th class="d-none d-md-table-cell" style="width:40px;">#</th>
                         <th>Nama</th>
                         <th>Email</th>
                         <th>Alasan</th>
@@ -38,13 +38,13 @@
                 <tbody>
                     @forelse($blockedUsers as $i => $b)
                     <tr>
-                        <td>{{ $blockedUsers->firstItem() + $i }}</td>
-                        <td class="fw-semibold">{{ isset($userNames[$b->email]) ? Str::title($userNames[$b->email]) : '—' }}</td>
-                        <td class="small">{{ $b->email }}</td>
-                        <td class="text-muted small">{{ $b->reason ?? '-' }}</td>
-                        <td class="small">{{ optional($b->admin)->name ? Str::title(optional($b->admin)->name) : '—' }}</td>
-                        <td class="small">{{ $b->created_at?->format('d-m-Y H:i') }}</td>
-                        <td>
+                        <td class="d-none d-md-table-cell">{{ $blockedUsers->firstItem() + $i }}</td>
+                        <td class="cell-title">{{ isset($userNames[$b->email]) ? Str::title($userNames[$b->email]) : '—' }}</td>
+                        <td class="small" data-label="Email">{{ $b->email }}</td>
+                        <td class="text-muted small" data-label="Alasan">{{ $b->reason ?? '-' }}</td>
+                        <td class="small" data-label="Ditambahkan Oleh">{{ optional($b->admin)->name ? Str::title(optional($b->admin)->name) : '—' }}</td>
+                        <td class="small" data-label="Waktu">{{ $b->created_at?->format('d-m-Y H:i') }}</td>
+                        <td class="cell-actions">
                             <form method="post" class="d-inline swal-confirm" data-confirm="Hapus dari daftar blokir?" action="{{ route('admin.blocked_users.destroy', $b) }}">
                                 @csrf
                                 @method('DELETE')
@@ -53,7 +53,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" class="text-center py-4 text-muted">Belum ada user yang diblokir.</td></tr>
+                    <tr class="no-card"><td colspan="7" class="text-center py-4 text-muted">Belum ada user yang diblokir.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -63,6 +63,7 @@
         {{ $blockedUsers->links() }}
     </div>
 </div>
+@push('modals')
 {{-- Modal Blokir Email --}}
 <div class="modal fade" id="blockedUserModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -102,6 +103,7 @@
         </div>
     </div>
 </div>
+@endpush
 
 @push('head')
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />

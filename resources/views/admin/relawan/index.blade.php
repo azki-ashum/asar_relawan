@@ -23,10 +23,10 @@
                 <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm" placeholder="Cari nama / keahlian / domisili / kontak...">
             </div>
             <div class="col-6 col-md-3">
-                <select name="bidang_relawan_id" class="form-select form-select-sm">
-                    <option value="">Semua Bidang</option>
-                    @foreach($bidangs as $b)
-                        <option value="{{ $b->id }}" @selected(request('bidang_relawan_id') == $b->id)>{{ $b->nama }}</option>
+                <select name="jenis" class="form-select form-select-sm">
+                    <option value="">Semua Jenis</option>
+                    @foreach(\App\Models\Relawan::JENIS as $key => $label)
+                        <option value="{{ $key }}" @selected(request('jenis') === $key)>{{ $label }}</option>
                     @endforeach
                 </select>
             </div>
@@ -44,32 +44,34 @@
         </form>
 
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover table-stack align-middle mb-0">
                 <thead>
                     <tr>
-                        <th class="text-muted">Nama</th>
-                        <th class="text-muted">Bidang</th>
-                        <th class="text-muted">Domisili</th>
-                        <th class="text-muted">Kontak</th>
-                        <th class="text-muted">Status</th>
-                        <th class="text-muted text-center" style="min-width:110px">Aksi</th>
+                        <th>Nama</th>
+                        <th>Jenis</th>
+                        <th>L/P</th>
+                        <th>Domisili</th>
+                        <th>Kontak</th>
+                        <th>Status</th>
+                        <th class="text-center" style="min-width:110px">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($relawan as $r)
                     <tr>
-                        <td>
-                            <div class="fw-semibold">{{ $r->nama }}</div>
-                            @if($r->keahlian)<div class="small text-muted">{{ \Illuminate\Support\Str::limit($r->keahlian, 60) }}</div>@endif
+                        <td class="cell-title">
+                            <div>{{ $r->nama }}</div>
+                            @if($r->keahlian)<div class="small text-muted fw-normal">{{ \Illuminate\Support\Str::limit($r->keahlian, 60) }}</div>@endif
                         </td>
-                        <td>@if($r->bidang)<span class="badge bg-light text-dark border">{{ $r->bidang->nama }}</span>@else <span class="text-muted">—</span>@endif</td>
-                        <td>{{ $r->domisili ?? '—' }}</td>
-                        <td>{{ $r->kontak ?? '—' }}</td>
-                        <td>
+                        <td data-label="Jenis"><span class="badge bg-light text-dark border">{{ $r->jenisLabel() }}</span></td>
+                        <td data-label="L/P">{{ $r->jenis_kelamin ?? '—' }}</td>
+                        <td data-label="Domisili">{{ $r->domisili ?? '—' }}</td>
+                        <td data-label="Kontak">{{ $r->kontak ?? '—' }}</td>
+                        <td data-label="Status">
                             @php $s = \App\Models\Relawan::STATUSES[$r->status] ?? ['label' => ucfirst($r->status), 'class' => 'badge-soft-secondary']; @endphp
                             <span class="badge {{ $s['class'] }}">{{ $s['label'] }}</span>
                         </td>
-                        <td class="text-center">
+                        <td class="cell-actions text-center">
                             <div class="d-flex gap-1 justify-content-center">
                                 <a href="{{ route('admin.relawan.edit', $r) }}" class="btn btn-sm btn-light border" title="Edit"><i class="bi bi-pencil"></i></a>
                                 <form action="{{ route('admin.relawan.destroy', $r) }}" method="post" class="d-inline swal-confirm" data-confirm="Hapus relawan {{ $r->nama }}?">
@@ -80,7 +82,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" class="text-center text-muted py-4">Belum ada data relawan.</td></tr>
+                    <tr class="no-card"><td colspan="7"><div class="empty-state"><i class="bi bi-people"></i>Belum ada data relawan.</div></td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -93,6 +95,7 @@
     @endif
 </div>
 
+@push('modals')
 <!-- Modal: Kelola Bidang Relawan -->
 <div class="modal fade" id="bidangModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
@@ -173,4 +176,5 @@
     </div>
 </div>
 @endforeach
+@endpush
 @endsection

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.relawan')
 
 @section('title', 'Manage Users')
 
@@ -31,10 +31,10 @@
 <div class="card shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
+            <table class="table table-hover table-stack mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-3" style="width:50px;">#</th>
+                        <th class="ps-3 d-none d-md-table-cell" style="width:50px;">#</th>
                         <th>Nama</th>
                         <th>Email</th>
                         <th style="width:160px;">Role</th>
@@ -44,10 +44,10 @@
                 <tbody>
                     @forelse($users as $i => $u)
                     <tr>
-                        <td class="ps-3 text-muted small">{{ $users->firstItem() + $i }}</td>
-                        <td class="fw-semibold">{{ Str::title($u->name) }}</td>
-                        <td class="text-muted small">{{ $u->email }}</td>
-                        <td>
+                        <td class="ps-3 text-muted small d-none d-md-table-cell">{{ $users->firstItem() + $i }}</td>
+                        <td class="cell-title">{{ Str::title($u->name) }}</td>
+                        <td class="text-muted small" data-label="Email">{{ $u->email }}</td>
+                        <td data-label="Role">
                             @php
                                 $roleClass = match(true) {
                                     $u->role === 'admin'                    => 'bg-danger',
@@ -58,7 +58,7 @@
                             @endphp
                             <span class="badge {{ $roleClass }}">{{ $roles[$u->role] ?? $u->role }}</span>
                         </td>
-                        <td class="text-end pe-3">
+                        <td class="cell-actions text-end pe-3">
                             <a href="{{ route('admin.users.edit', $u) }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
@@ -74,7 +74,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="5" class="text-center py-5 text-muted">
+                    <tr class="no-card"><td colspan="5" class="text-center py-5 text-muted">
                         <i class="bi bi-inbox fs-4 d-block mb-1"></i>Tidak ada user ditemukan.
                     </td></tr>
                     @endforelse

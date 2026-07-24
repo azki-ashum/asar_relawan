@@ -20,9 +20,4 @@ class BidangRelawan extends Model
     {
         return $this->hasMany(Relawan::class, 'bidang_relawan_id');
     }
-
-    public function pengajuan()
-    {
-        return $this->hasMany(Pengajuan::class, 'bidang_relawan_id');
-    }
 }

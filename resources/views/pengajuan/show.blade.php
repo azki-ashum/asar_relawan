@@ -2,95 +2,124 @@
 
 @section('title', 'Detail Pengajuan')
 
+@php $isOwner = $pengajuan->user_id === auth()->id(); @endphp
+
 @section('content')
-<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-    <div class="d-flex align-items-center gap-2">
-        <a href="{{ route('pengajuan.index') }}" class="btn btn-light border btn-sm"><i class="bi bi-arrow-left"></i></a>
-        <h3 class="mb-0">{{ $pengajuan->judul }}</h3>
-        @include('pengajuan._status', ['status' => $pengajuan->status])
+<div class="page-header mb-3">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+        <div class="d-flex align-items-center gap-2 page-header-meta">
+            <a href="{{ route('pengajuan.index') }}" class="btn-back"><i class="bi bi-arrow-left"></i></a>
+            @include('pengajuan._status', ['status' => $pengajuan->status])
+            @unless($isOwner)
+                <span class="badge badge-soft-secondary"><i class="bi bi-eye me-1"></i>Lihat saja</span>
+            @endunless
+        </div>
+        @if($isOwner && in_array($pengajuan->status, ['diajukan', 'revisi']))
+        <div class="d-flex gap-2 head-actions">
+            <a href="{{ route('pengajuan.edit', $pengajuan) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>{{ $pengajuan->status === 'revisi' ? 'Perbaiki' : 'Edit' }}</a>
+            <form action="{{ route('pengajuan.destroy', $pengajuan) }}" method="post" class="swal-confirm" data-confirm="Batalkan pengajuan ini?">
+                @csrf @method('DELETE')
+                <button class="btn btn-sm btn-outline-danger w-100"><i class="bi bi-x-lg me-1"></i>Batalkan</button>
+            </form>
+        </div>
+        @endif
     </div>
-    @if(in_array($pengajuan->status, ['diajukan', 'dicari']))
-    <div class="d-flex gap-2">
-        <a href="{{ route('pengajuan.edit', $pengajuan) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Edit</a>
-        <form action="{{ route('pengajuan.destroy', $pengajuan) }}" method="post" class="swal-confirm" data-confirm="Batalkan pengajuan ini?">
-            @csrf @method('DELETE')
-            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-lg me-1"></i>Batalkan</button>
-        </form>
+    <h3 class="mb-0">{{ $pengajuan->judul }}</h3>
+</div>
+
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+        @include('pengajuan._timeline')
     </div>
-    @endif
 </div>
 
 <div class="row g-3">
     <div class="col-12 col-lg-7">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-0"><h5 class="mb-0">Detail Kebutuhan</h5></div>
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white border-0"><h5 class="mb-0">Informasi Kegiatan</h5></div>
             <div class="card-body">
                 <dl class="row mb-0">
-                    <dt class="col-sm-4 text-muted">Bidang</dt>
-                    <dd class="col-sm-8">{{ $pengajuan->bidang->nama ?? '—' }}</dd>
-                    <dt class="col-sm-4 text-muted">Jumlah Relawan</dt>
-                    <dd class="col-sm-8">{{ $pengajuan->jumlah_relawan }} orang</dd>
-                    <dt class="col-sm-4 text-muted">Tanggal Kegiatan</dt>
-                    <dd class="col-sm-8">{{ optional($pengajuan->tanggal_kegiatan)->format('d M Y') ?? '—' }}</dd>
-                    <dt class="col-sm-4 text-muted">Lokasi</dt>
-                    <dd class="col-sm-8">{{ $pengajuan->lokasi ?? '—' }}</dd>
-                    <dt class="col-sm-4 text-muted">Diajukan</dt>
-                    <dd class="col-sm-8">{{ $pengajuan->created_at->format('d M Y H:i') }}</dd>
-                    <dt class="col-12 text-muted mt-2">Deskripsi Kebutuhan</dt>
-                    <dd class="col-12" style="white-space:pre-line">{{ $pengajuan->kebutuhan }}</dd>
+                    <dt class="col-sm-4 text-muted">Direktorat / Divisi</dt>
+                    <dd class="col-sm-8">{{ $pengajuan->direktorat ?? '—' }}{{ $pengajuan->divisi ? ' / '.$pengajuan->divisi : '' }}</dd>
+                    <dt class="col-sm-4 text-muted">PIC / Pengaju</dt><dd class="col-sm-8">{{ $pengajuan->nama_pic ?? $pengajuan->user->name }}</dd>
+                    <dt class="col-sm-4 text-muted">Waktu Pelaksanaan</dt>
+                    <dd class="col-sm-8">
+                        {{ optional($pengajuan->waktu_mulai)->format('d M Y, H:i') ?? '—' }}
+                        @if($pengajuan->waktu_selesai) &ndash; {{ $pengajuan->waktu_selesai->format('d M Y, H:i') }}@endif
+                    </dd>
+                    <dt class="col-sm-4 text-muted">Lokasi</dt><dd class="col-sm-8">{{ $pengajuan->lokasi ?? '—' }}</dd>
+                    @if($pengajuan->keterangan)
+                    <dt class="col-12 text-muted mt-2">Keterangan</dt>
+                    <dd class="col-12" style="white-space:pre-line">{{ $pengajuan->keterangan }}</dd>
+                    @endif
                 </dl>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-people me-1"></i>Kebutuhan Relawan</h5>
+                <span class="badge bg-light text-dark border">{{ $pengajuan->assignedCount() }}/{{ $pengajuan->kebutuhan->count() }} terisi</span>
+            </div>
+            <div class="card-body">
+                @foreach($pengajuan->kebutuhan as $idx => $k)
+                <div class="border rounded p-3 mb-2">
+                    <div class="d-flex flex-wrap justify-content-between gap-2">
+                        <div>
+                            <span class="fw-semibold">#{{ $idx + 1 }} · {{ $k->jenisLabel() }}</span>
+                            <span class="badge badge-soft-secondary ms-1">{{ $k->jenisKelaminLabel() }}</span>
+                            @if($k->nominal_apresiasi)<span class="badge badge-soft-info ms-1">Rp {{ number_format($k->nominal_apresiasi, 0, ',', '.') }}</span>@endif
+                        </div>
+                        @if($k->isAssigned())
+                            <span class="badge badge-soft-success"><i class="bi bi-check-circle me-1"></i>Terisi</span>
+                        @else
+                            <span class="badge badge-soft-warning"><i class="bi bi-hourglass-split me-1"></i>Dicari</span>
+                        @endif
+                    </div>
+                    @if($k->detail_tugas)<div class="small text-muted mt-1" style="white-space:pre-line">{{ $k->detail_tugas }}</div>@endif
+                    @if($k->isAssigned())
+                    <div class="mt-2 pt-2 border-top small">
+                        <i class="bi bi-person-badge me-1 text-success"></i><strong>{{ $k->assignedName() }}</strong>
+                        @if($k->relawan_kontak) · <i class="bi bi-telephone me-1"></i>{{ $k->relawan_kontak }}@endif
+                        @if($k->relawan_domisili) · <i class="bi bi-geo-alt me-1"></i>{{ $k->relawan_domisili }}@endif
+                    </div>
+                    @endif
+                </div>
+                @endforeach
             </div>
         </div>
     </div>
 
     <div class="col-12 col-lg-5">
-        {{-- Relawan yang ditugaskan --}}
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-header bg-white border-0"><h5 class="mb-0"><i class="bi bi-person-badge me-1"></i>Relawan Ditugaskan</h5></div>
-            <div class="card-body">
-                @if($pengajuan->relawan)
-                    <div class="fw-semibold fs-5">{{ $pengajuan->relawan->nama }}</div>
-                    <div class="text-muted small mb-2">{{ $pengajuan->relawan->bidang->nama ?? '' }}</div>
-                    <ul class="list-unstyled mb-0 small">
-                        @if($pengajuan->relawan->kontak)<li><i class="bi bi-telephone me-2"></i>{{ $pengajuan->relawan->kontak }}</li>@endif
-                        @if($pengajuan->relawan->email)<li><i class="bi bi-envelope me-2"></i>{{ $pengajuan->relawan->email }}</li>@endif
-                        @if($pengajuan->relawan->domisili)<li><i class="bi bi-geo-alt me-2"></i>{{ $pengajuan->relawan->domisili }}</li>@endif
-                        @if($pengajuan->relawan->keahlian)<li class="mt-1"><i class="bi bi-stars me-2"></i>{{ $pengajuan->relawan->keahlian }}</li>@endif
-                    </ul>
-                @else
-                    <div class="text-muted"><i class="bi bi-hourglass-split me-1"></i>Belum ada relawan yang ditugaskan. Admin sedang mencarikan relawan yang cocok.</div>
-                @endif
-            </div>
-        </div>
-
-        {{-- Bukti implementasi / aksi penyelesaian --}}
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0"><h5 class="mb-0"><i class="bi bi-camera me-1"></i>Bukti Implementasi</h5></div>
+            <div class="card-header bg-white border-0"><h5 class="mb-0"><i class="bi bi-clipboard-check me-1"></i>Evaluasi & Pelaporan</h5></div>
             <div class="card-body">
                 @if($pengajuan->status === 'ditugaskan')
-                    <p class="text-muted small">Unggah foto bukti pelaksanaan untuk menandai pengajuan ini selesai (maks 5MB).</p>
+                    @if($pengajuan->catatan_revisi)
+                        <div class="alert alert-danger py-2 small"><i class="bi bi-exclamation-triangle me-1"></i><strong>Revisi laporan:</strong> {{ $pengajuan->catatan_revisi }}</div>
+                    @else
+                        <p class="text-muted small">Relawan sudah ditugaskan. Setelah kegiatan selesai, {{ $isOwner ? 'unggah foto bukti & laporan singkat untuk menutup pengajuan.' : 'pengaju perlu mengunggah foto bukti & laporan untuk menutup pengajuan.' }}</p>
+                    @endif
+                    @if($isOwner)
                     <form action="{{ route('pengajuan.selesai', $pengajuan) }}" method="post" enctype="multipart/form-data">
                         @csrf
+                        <label class="form-label small mb-1">Foto Bukti Implementasi <span class="text-danger">*</span></label>
                         <input type="file" name="bukti_file" accept="image/*" class="form-control mb-2" required>
-                        <button class="btn btn-success w-100"><i class="bi bi-cloud-upload me-1"></i>Unggah & Selesaikan</button>
+                        <label class="form-label small mb-1">Laporan / Evaluasi</label>
+                        <textarea name="laporan" class="form-control mb-2" rows="3" placeholder="Ringkasan pelaksanaan, jumlah relawan hadir, catatan apresiasi, dsb.">{{ old('laporan', $pengajuan->laporan) }}</textarea>
+                        <button class="btn btn-success w-100"><i class="bi bi-send-check me-1"></i>Kirim Laporan &amp; Selesaikan</button>
                     </form>
-                @elseif($pengajuan->status === 'revisi')
-                    <div class="alert alert-danger py-2">
-                        <i class="bi bi-exclamation-triangle me-1"></i>Admin meminta revisi bukti.
-                        @if($pengajuan->catatan_revisi)<div class="small mt-1"><strong>Catatan:</strong> {{ $pengajuan->catatan_revisi }}</div>@endif
-                    </div>
-                    <form action="{{ route('pengajuan.resubmit', $pengajuan) }}" method="post" enctype="multipart/form-data">
-                        @csrf
-                        <input type="file" name="bukti_file" accept="image/*" class="form-control mb-2" required>
-                        <button class="btn btn-danger w-100"><i class="bi bi-arrow-repeat me-1"></i>Unggah Ulang</button>
-                    </form>
-                @elseif($pengajuan->status === 'selesai' && !empty($pengajuan->bukti_implementasi['path']))
+                    @endif
+                @elseif($pengajuan->status === 'selesai')
+                    @if(!empty($pengajuan->bukti_implementasi['path']))
                     <a href="{{ asset('storage/'.$pengajuan->bukti_implementasi['path']) }}" target="_blank">
-                        <img src="{{ asset('storage/'.$pengajuan->bukti_implementasi['path']) }}" alt="Bukti implementasi" class="img-fluid rounded border mb-2" style="max-height:280px;object-fit:cover;width:100%">
+                        <img src="{{ asset('storage/'.$pengajuan->bukti_implementasi['path']) }}" alt="Bukti" class="img-fluid rounded border mb-2" style="max-height:260px;object-fit:cover;width:100%">
                     </a>
-                    <div class="small text-muted"><i class="bi bi-check-circle text-success me-1"></i>Selesai pada {{ optional($pengajuan->selesai_at)->format('d M Y H:i') }}</div>
+                    @endif
+                    @if($pengajuan->laporan)<div class="small" style="white-space:pre-line"><strong>Laporan:</strong><br>{{ $pengajuan->laporan }}</div>@endif
+                    <div class="small text-muted mt-2"><i class="bi bi-check-circle text-success me-1"></i>Selesai pada {{ optional($pengajuan->selesai_at)->format('d M Y H:i') }}</div>
                 @else
-                    <div class="text-muted small">Bukti implementasi dapat diunggah setelah relawan ditugaskan.</div>
+                    <div class="text-muted small">Tahap laporan tersedia setelah relawan ditugaskan (status "Relawan Ditugaskan").</div>
                 @endif
             </div>
         </div>
