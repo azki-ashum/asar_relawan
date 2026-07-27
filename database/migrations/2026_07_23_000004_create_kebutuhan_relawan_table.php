@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('pengajuan_id')->constrained('pengajuan')->cascadeOnDelete();
 
             // ---- Diisi pengaju ----
-            $table->enum('jenis_relawan', ['driver', 'medis', 'implementasi', 'media_dokumentasi', 'canvassing_booth', 'lainnya']);
+            $table->string('jenis_relawan');
             $table->enum('jenis_kelamin', ['L', 'P', 'LP'])->default('LP'); // LP = laki-laki atau perempuan
             $table->text('detail_tugas')->nullable();
             $table->unsignedBigInteger('nominal_apresiasi')->nullable(); // rupiah

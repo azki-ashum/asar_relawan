@@ -21,19 +21,29 @@
 <div class="row g-3">
     <div class="col-12 col-md-6">
         <label class="form-label">Direktorat</label>
-        <input type="text" name="direktorat" class="form-control" value="{{ old('direktorat', $pengajuan->direktorat ?? '') }}">
+        <select id="direktorat" name="direktorat" class="form-select">
+            <option value="">-- Pilih Direktorat --</option>
+            @php
+                $selectedDirectorate = old('direktorat', $pengajuan->direktorat ?? '');
+            @endphp
+            @foreach(['GNPE', 'SPDE', 'IHPN', 'BIC', 'SOSM', 'ASHUM'] as $dir)
+                <option value="{{ $dir }}" {{ $selectedDirectorate === $dir ? 'selected' : '' }}>{{ $dir }}</option>
+            @endforeach
+        </select>
     </div>
     <div class="col-12 col-md-6">
         <label class="form-label">Divisi</label>
-        <input type="text" name="divisi" class="form-control" value="{{ old('divisi', $pengajuan->divisi ?? '') }}">
+        <select id="divisi" name="divisi" class="form-select" data-initial="{{ old('divisi', $pengajuan->divisi ?? '') }}">
+            <option value="">-- Pilih Divisi --</option>
+        </select>
     </div>
     <div class="col-12 col-md-6">
         <label class="form-label">Nama PIC / Pengaju</label>
-        <input type="text" name="nama_pic" class="form-control" value="{{ old('nama_pic', $pengajuan->nama_pic ?? auth()->user()->name) }}">
+        <input type="text" name="nama_pic" class="form-control" placeholder="Nama PIC / Pengaju" value="{{ old('nama_pic', $pengajuan->nama_pic ?? auth()->user()->name) }}">
     </div>
     <div class="col-12 col-md-6">
         <label class="form-label">Nama Kegiatan <span class="text-danger">*</span></label>
-        <input type="text" name="judul" class="form-control" value="{{ old('judul', $pengajuan->judul ?? '') }}" required>
+        <input type="text" name="judul" class="form-control" placeholder="Masukkan nama kegiatan" value="{{ old('judul', $pengajuan->judul ?? '') }}" required>
     </div>
     <div class="col-12 col-md-6">
         <label class="form-label">Waktu Mulai Pelaksanaan</label>
@@ -45,7 +55,7 @@
     </div>
     <div class="col-12">
         <label class="form-label">Lokasi Kegiatan</label>
-        <input type="text" name="lokasi" class="form-control" value="{{ old('lokasi', $pengajuan->lokasi ?? '') }}">
+        <input type="text" name="lokasi" class="form-control" placeholder="Masukkan lokasi kegiatan" value="{{ old('lokasi', $pengajuan->lokasi ?? '') }}">
     </div>
     <div class="col-12">
         <label class="form-label">Keterangan</label>
@@ -76,11 +86,93 @@
 @push('scripts')
 <script>
 (function () {
+    var divisionMap = {
+        'GNPE': ['GPN','PDE'],
+        'SPDE': ['DCPE','SNP'],
+        'IHPN': ['PND','PSS','PSI'],
+        'BIC': ['BCMR','SMO'],
+        'SOSM': ['HC','GALC','ACC & FIN','IT'],
+        'ASHUM': ['ASHUM']
+    };
+
+    function populateDivisions(selectedDirectorate, selectedDivision) {
+        var divEl = document.getElementById('divisi');
+        if (!divEl) return;
+        divEl.innerHTML = '<option value="">-- Pilih Divisi --</option>';
+        if (!selectedDirectorate || !divisionMap[selectedDirectorate]) return;
+        var foundSelected = false;
+        divisionMap[selectedDirectorate].forEach(function(d) {
+            var opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            if (selectedDivision && selectedDivision === d) {
+                opt.selected = true;
+                foundSelected = true;
+            }
+            divEl.appendChild(opt);
+        });
+        if (selectedDivision && !foundSelected) {
+            var opt = document.createElement('option');
+            opt.value = selectedDivision;
+            opt.textContent = selectedDivision;
+            opt.selected = true;
+            divEl.appendChild(opt);
+        }
+    }
+
+    var directorateEl = document.getElementById('direktorat');
+    var divisiEl = document.getElementById('divisi');
+    if (directorateEl && divisiEl) {
+        var initDirectorate = directorateEl.value || '';
+        var initDivision = divisiEl.getAttribute('data-initial') || '';
+        populateDivisions(initDirectorate, initDivision);
+
+        directorateEl.addEventListener('change', function() {
+            populateDivisions(this.value, '');
+        });
+    }
+
     var container = document.getElementById('kebutuhan-container');
     var tpl = document.getElementById('kebutuhan-template');
     var addBtn = document.getElementById('add-kebutuhan');
     if (!container || !tpl || !addBtn) return;
     var idx = {{ count($rows) }};
+
+    function initJenisRelawanRow(item) {
+        var select = item.querySelector('.select-jenis-relawan');
+        var customInput = item.querySelector('.input-jenis-custom');
+        var hiddenVal = item.querySelector('.jenis-relawan-val');
+        if (!select || !customInput || !hiddenVal) return;
+
+        function sync() {
+            if (select.value === 'lainnya') {
+                customInput.style.display = '';
+                customInput.required = true;
+                select.required = false;
+                hiddenVal.value = customInput.value.trim();
+            } else {
+                customInput.style.display = 'none';
+                customInput.required = false;
+                select.required = true;
+                hiddenVal.value = select.value;
+            }
+        }
+
+        select.addEventListener('change', function () {
+            sync();
+            if (select.value === 'lainnya') {
+                customInput.focus();
+            }
+        });
+
+        customInput.addEventListener('input', function () {
+            if (select.value === 'lainnya') {
+                hiddenVal.value = this.value.trim();
+            }
+        });
+
+        sync();
+    }
 
     function renumber() {
         var items = container.querySelectorAll('.kebutuhan-item');
@@ -95,6 +187,7 @@
         wrap.innerHTML = html.trim();
         var node = wrap.firstElementChild;
         container.appendChild(node);
+        initJenisRelawanRow(node);
         renumber();
         node.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
@@ -104,6 +197,8 @@
         btn.closest('.kebutuhan-item').remove();
         renumber();
     });
+
+    container.querySelectorAll('.kebutuhan-item').forEach(initJenisRelawanRow);
     renumber();
 })();
 </script>

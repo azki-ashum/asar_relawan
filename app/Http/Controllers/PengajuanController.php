@@ -35,7 +35,7 @@ class PengajuanController extends Controller
             'lokasi'                        => 'nullable|string|max:255',
             'keterangan'                    => 'nullable|string',
             'kebutuhan'                     => 'required|array|min:1',
-            'kebutuhan.*.jenis_relawan'     => ['required', Rule::in(array_keys(KebutuhanRelawan::JENIS))],
+            'kebutuhan.*.jenis_relawan'     => 'required|string|max:255',
             'kebutuhan.*.jenis_kelamin'     => ['required', Rule::in(array_keys(KebutuhanRelawan::JENIS_KELAMIN))],
             'kebutuhan.*.detail_tugas'      => 'nullable|string',
             'kebutuhan.*.nominal_apresiasi' => 'nullable|integer|min:0|max:1000000000',

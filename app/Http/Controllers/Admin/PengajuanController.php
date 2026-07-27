@@ -113,17 +113,32 @@ class PengajuanController extends Controller
         // Kandidat relawan per baris: jenis cocok, tersedia (+ yang sudah dipilih), gender sesuai
         $candidates = [];
         foreach ($pengajuan->kebutuhan as $k) {
-            $q = Relawan::where('jenis', $k->jenis_relawan)
-                ->where(function ($qq) use ($k) {
-                    $qq->where('status', 'tersedia');
-                    if ($k->relawan_id) $qq->orWhere('id', $k->relawan_id);
-                });
+            $q = Relawan::where(function ($qq) use ($k) {
+                $qq->where('jenis', $k->jenis_relawan)
+                   ->orWhere('jenis', 'lainnya');
+            })->where(function ($qq) use ($k) {
+                $qq->where('status', 'tersedia');
+                if ($k->relawan_id) $qq->orWhere('id', $k->relawan_id);
+            });
             if (in_array($k->jenis_kelamin, ['L', 'P'])) {
                 $q->where(function ($qq) use ($k) {
                     $qq->where('jenis_kelamin', $k->jenis_kelamin)->orWhereNull('jenis_kelamin');
                 });
             }
-            $candidates[$k->id] = $q->orderBy('nama')->get();
+            $list = $q->orderBy('nama')->get();
+            if ($list->isEmpty()) {
+                $fq = Relawan::where(function ($qq) use ($k) {
+                    $qq->where('status', 'tersedia');
+                    if ($k->relawan_id) $qq->orWhere('id', $k->relawan_id);
+                });
+                if (in_array($k->jenis_kelamin, ['L', 'P'])) {
+                    $fq->where(function ($qq) use ($k) {
+                        $qq->where('jenis_kelamin', $k->jenis_kelamin)->orWhereNull('jenis_kelamin');
+                    });
+                }
+                $list = $fq->orderBy('nama')->get();
+            }
+            $candidates[$k->id] = $list;
         }
 
         return view('admin.pengajuan.assign', compact('pengajuan', 'candidates'));

@@ -1,4 +1,11 @@
-@php $i = $i ?? '__INDEX__'; $row = $row ?? []; @endphp
+@php
+    $i = $i ?? '__INDEX__';
+    $row = $row ?? [];
+    $rawJenis = $row['jenis_relawan'] ?? '';
+    $predefinedKeys = ['driver', 'medis', 'implementasi', 'media_dokumentasi', 'canvassing_booth'];
+    $isCustom = !empty($rawJenis) && !in_array($rawJenis, $predefinedKeys);
+    $selectedSelect = $isCustom ? 'lainnya' : $rawJenis;
+@endphp
 <div class="kebutuhan-item card border mb-2">
     <div class="card-body py-3">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
@@ -8,12 +15,17 @@
         <div class="row g-2">
             <div class="col-12 col-md-6">
                 <label class="form-label small mb-1">Jenis Relawan <span class="text-danger">*</span></label>
-                <select name="kebutuhan[{{ $i }}][jenis_relawan]" class="form-select form-select-sm" required>
+                <input type="hidden" name="kebutuhan[{{ $i }}][jenis_relawan]" class="jenis-relawan-val" value="{{ $rawJenis }}">
+                <select class="form-select form-select-sm select-jenis-relawan">
                     <option value="">— pilih jenis —</option>
                     @foreach(\App\Models\KebutuhanRelawan::JENIS as $key => $label)
-                        <option value="{{ $key }}" @selected(($row['jenis_relawan'] ?? '') === $key)>{{ $label }}</option>
+                        <option value="{{ $key }}" @selected($selectedSelect === $key)>{{ $label }}</option>
                     @endforeach
                 </select>
+                <input type="text" class="form-control form-control-sm mt-1 input-jenis-custom" 
+                       placeholder="Sebutkan jenis relawan..." 
+                       value="{{ $isCustom ? $rawJenis : '' }}" 
+                       style="{{ $isCustom ? '' : 'display: none;' }}">
             </div>
             <div class="col-12 col-md-6">
                 <label class="form-label small mb-1">Jenis Kelamin <span class="text-danger">*</span></label>
