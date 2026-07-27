@@ -39,7 +39,7 @@
                 <label class="form-label small mb-1">Detail Tugas Relawan</label>
                 <textarea name="kebutuhan[{{ $i }}][detail_tugas]" class="form-control form-control-sm" rows="2" placeholder="Uraikan tugas relawan untuk kebutuhan ini">{{ $row['detail_tugas'] ?? '' }}</textarea>
             </div>
-            <div class="col-12 col-md-6">
+            <div class="col-md-3 mb-2 d-none">
                 <label class="form-label small mb-1">Nominal Apresiasi (Rp)</label>
                 <input type="number" min="0" step="1000" name="kebutuhan[{{ $i }}][nominal_apresiasi]" class="form-control form-control-sm" value="{{ $row['nominal_apresiasi'] ?? '' }}" placeholder="mis. 100000">
             </div>

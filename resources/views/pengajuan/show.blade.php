@@ -2,7 +2,10 @@
 
 @section('title', 'Detail Pengajuan')
 
-@php $isOwner = $pengajuan->user_id === auth()->id(); @endphp
+@php 
+    $isOwner = $pengajuan->user_id === auth()->id();
+    $canManage = $isOwner || (auth()->check() && auth()->user()->isAdmin());
+@endphp
 
 @section('content')
 <div class="page-header mb-3">
@@ -10,11 +13,11 @@
         <div class="d-flex align-items-center gap-2 page-header-meta">
             <a href="{{ route('pengajuan.index') }}" class="btn-back"><i class="bi bi-arrow-left"></i></a>
             @include('pengajuan._status', ['status' => $pengajuan->status])
-            @unless($isOwner)
+            @unless($canManage)
                 <span class="badge badge-soft-secondary"><i class="bi bi-eye me-1"></i>Lihat saja</span>
             @endunless
         </div>
-        @if($isOwner && in_array($pengajuan->status, ['diajukan', 'revisi']))
+        @if($canManage && in_array($pengajuan->status, ['diajukan', 'revisi']))
         <div class="d-flex gap-2 head-actions">
             <a href="{{ route('pengajuan.edit', $pengajuan) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>{{ $pengajuan->status === 'revisi' ? 'Perbaiki' : 'Edit' }}</a>
             <form action="{{ route('pengajuan.destroy', $pengajuan) }}" method="post" class="swal-confirm" data-confirm="Batalkan pengajuan ini?">
@@ -68,7 +71,7 @@
                         <div>
                             <span class="fw-semibold">#{{ $idx + 1 }} · {{ $k->jenisLabel() }}</span>
                             <span class="badge badge-soft-secondary ms-1">{{ $k->jenisKelaminLabel() }}</span>
-                            @if($k->nominal_apresiasi)<span class="badge badge-soft-info ms-1">Rp {{ number_format($k->nominal_apresiasi, 0, ',', '.') }}</span>@endif
+                            {{-- @if($k->nominal_apresiasi)<span class="badge badge-soft-info ms-1">Rp {{ number_format($k->nominal_apresiasi, 0, ',', '.') }}</span>@endif --}}
                         </div>
                         @if($k->isAssigned())
                             <span class="badge badge-soft-success"><i class="bi bi-check-circle me-1"></i>Terisi</span>
@@ -98,9 +101,9 @@
                     @if($pengajuan->catatan_revisi)
                         <div class="alert alert-danger py-2 small"><i class="bi bi-exclamation-triangle me-1"></i><strong>Revisi laporan:</strong> {{ $pengajuan->catatan_revisi }}</div>
                     @else
-                        <p class="text-muted small">Relawan sudah ditugaskan. Setelah kegiatan selesai, {{ $isOwner ? 'unggah foto bukti & laporan singkat untuk menutup pengajuan.' : 'pengaju perlu mengunggah foto bukti & laporan untuk menutup pengajuan.' }}</p>
+                        <p class="text-muted small">Relawan sudah ditugaskan. Setelah kegiatan selesai, {{ $canManage ? 'unggah foto bukti & laporan singkat untuk menutup pengajuan.' : 'pengaju perlu mengunggah foto bukti & laporan untuk menutup pengajuan.' }}</p>
                     @endif
-                    @if($isOwner)
+                    @if($canManage)
                     <form action="{{ route('pengajuan.selesai', $pengajuan) }}" method="post" enctype="multipart/form-data">
                         @csrf
                         <label class="form-label small mb-1">Foto Bukti Implementasi <span class="text-danger">*</span></label>

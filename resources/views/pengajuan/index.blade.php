@@ -47,7 +47,7 @@
                         <td class="cell-title wrap">{{ $p->judul }}</td>
                         <td data-label="Pengaju">{{ $p->nama_pic ?? ($p->user->name ?? '—') }}</td>
                         <td data-label="Divisi">{{ $p->divisi ?? '—' }}</td>
-                        <td data-label="Kebutuhan">{{ $p->kebutuhan_count }} baris</td>
+                        <td data-label="Kebutuhan">{{ $p->jumlah_relawan }} Relawan</td>
                         <td data-label="Waktu">{{ optional($p->waktu_mulai)->format('d M Y') ?? '—' }}</td>
                         <td data-label="Status">@include('pengajuan._status', ['status' => $p->status])</td>
                         <td class="cell-actions text-end"><a href="{{ route('pengajuan.show', $p) }}" class="btn btn-sm btn-light border">Detail</a></td>

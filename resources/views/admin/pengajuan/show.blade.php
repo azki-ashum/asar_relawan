@@ -14,8 +14,12 @@
                 <a href="{{ route('admin.pengajuan.assign_form', $pengajuan) }}" class="btn btn-sm btn-success"><i class="bi bi-person-plus me-1"></i>Penugasan</a>
             @endif
             @if(!in_array($pengajuan->status, ['selesai', 'ditolak']))
-                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal"><i class="bi bi-x-circle me-1"></i>Tolak</button>
+                <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#rejectModal"><i class="bi bi-x-circle me-1"></i>Tolak</button>
             @endif
+            <form action="{{ route('admin.pengajuan.destroy', $pengajuan) }}" method="post" class="swal-confirm" data-confirm="Hapus pengajuan ini secara permanen dari database?">
+                @csrf @method('DELETE')
+                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Hapus</button>
+            </form>
         </div>
     </div>
     <h3 class="mb-0">{{ $pengajuan->judul }}</h3>
@@ -75,7 +79,7 @@
                         <div>
                             <span class="fw-semibold">#{{ $idx + 1 }} · {{ $k->jenisLabel() }}</span>
                             <span class="badge badge-soft-secondary ms-1">{{ $k->jenisKelaminLabel() }}</span>
-                            @if($k->nominal_apresiasi)<span class="badge badge-soft-info ms-1">Rp {{ number_format($k->nominal_apresiasi, 0, ',', '.') }}</span>@endif
+                            {{-- @if($k->nominal_apresiasi)<span class="badge badge-soft-info ms-1">Rp {{ number_format($k->nominal_apresiasi, 0, ',', '.') }}</span>@endif --}}
                         </div>
                         @if($k->isAssigned())<span class="badge badge-soft-success">{{ $k->assignedName() }}</span>@else<span class="badge badge-soft-warning">Belum diisi</span>@endif
                     </div>

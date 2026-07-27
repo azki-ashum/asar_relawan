@@ -78,6 +78,7 @@ Route::middleware('auth')->group(function () {
     // ---- Admin: Pengajuan (verifikasi & penugasan sesuai SOP) ----
     Route::get('/admin/pengajuan', [AdminPengajuanController::class, 'index'])->name('admin.pengajuan.index');
     Route::get('/admin/pengajuan/{pengajuan}', [AdminPengajuanController::class, 'show'])->name('admin.pengajuan.show');
+    Route::delete('/admin/pengajuan/{pengajuan}', [AdminPengajuanController::class, 'destroy'])->name('admin.pengajuan.destroy');
     // Bagian 1: Review & Verifikasi
     Route::post('/admin/pengajuan/{pengajuan}/approve', [AdminPengajuanController::class, 'approve'])->name('admin.pengajuan.approve');
     Route::post('/admin/pengajuan/{pengajuan}/revisi', [AdminPengajuanController::class, 'revisi'])->name('admin.pengajuan.revisi');

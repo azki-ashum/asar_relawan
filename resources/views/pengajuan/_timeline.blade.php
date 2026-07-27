@@ -20,15 +20,15 @@
                             border:2px solid {{ $done || $current ? 'var(--brand-600)' : 'var(--line)' }};
                             box-shadow:{{ $current ? '0 0 0 4px rgba(22,163,74,.15)' : 'none' }};
                             transition:all .3s ease;">
-                    @if($done)<i class="bi bi-check-lg"></i>@else<i class="bi {{ $icons[$i] }}"></i>@endif
+                    @if($done)<i class="bi bi-check-lg d-inline-flex align-items-center justify-content-center"></i>@else<i class="bi {{ $icons[$i] }} d-inline-flex align-items-center justify-content-center"></i>@endif
                 </div>
                 <div class="step-label small mt-2 {{ $current ? 'fw-bold text-success' : ($done ? 'fw-semibold' : 'text-muted') }}">{{ $label }}</div>
             </div>
         @endforeach
     </div>
     @if($pengajuan->status === 'revisi')
-        <div class="alert alert-warning py-2 mb-0 mt-2 small d-flex align-items-start gap-2"><i class="bi bi-arrow-counterclockwise mt-1"></i><div><strong>Perlu revisi.</strong> {{ $pengajuan->catatan_revisi }}</div></div>
+        <div class="alert alert-warning py-2.5 px-3 mb-0 mt-3 small d-flex align-items-center gap-2 rounded-3"><i class="bi bi-arrow-counterclockwise flex-shrink-0 fs-6"></i><div class="lh-sm"><strong>Perlu revisi.</strong> {{ $pengajuan->catatan_revisi }}</div></div>
     @elseif($pengajuan->status === 'ditolak')
-        <div class="alert alert-secondary py-2 mb-0 mt-2 small d-flex align-items-start gap-2"><i class="bi bi-x-circle mt-1"></i><div><strong>Pengajuan ditolak.</strong> {{ $pengajuan->catatan_revisi }}</div></div>
+        <div class="alert alert-secondary py-2.5 px-3 mb-0 mt-3 small d-flex align-items-center gap-2 rounded-3"><i class="bi bi-x-circle flex-shrink-0 fs-6"></i><div class="lh-sm"><strong>Pengajuan ditolak.</strong> {{ $pengajuan->catatan_revisi }}</div></div>
     @endif
 </div>

@@ -137,6 +137,36 @@
         .alert-info { background:#eff8ff; border-color:#b2ddff; color:#175cd3; }
         .alert-secondary { background:#f8fafc; border-color:var(--line); color:var(--ink-soft); }
 
+        /* ---- Global Icon & Alignment Fixes ---- */
+        .bi {
+            line-height: 1;
+            vertical-align: -0.125em;
+        }
+        .step-circle {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .step-circle .bi {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1 !important;
+            margin: 0 !important;
+            vertical-align: 0 !important;
+        }
+        .step-circle .bi-send {
+            transform: translate(-0.5px, 0.5px);
+        }
+        .alert .bi {
+            line-height: 1;
+            vertical-align: middle;
+        }
+        .btn .bi, .badge .bi, .nav-link .bi {
+            line-height: 1;
+            vertical-align: -0.1em;
+        }
+
         /* ---- Dropdown / modal ---- */
         .dropdown-menu { border-radius:14px; border:1px solid var(--line); box-shadow: var(--shadow-lg); padding:.4rem; }
         .dropdown-item { border-radius:9px; padding:.5rem .7rem; font-weight:500; }

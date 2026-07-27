@@ -17,7 +17,7 @@ class PengajuanController extends Controller
 {
     protected function authorizeOwner(Pengajuan $pengajuan): void
     {
-        if ($pengajuan->user_id !== Auth::id()) {
+        if ($pengajuan->user_id !== Auth::id() && (!Auth::user() || !Auth::user()->isAdmin())) {
             abort(403, 'Anda tidak berhak mengakses pengajuan ini.');
         }
     }

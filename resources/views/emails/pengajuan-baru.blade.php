@@ -13,7 +13,7 @@ Ada pengajuan kebutuhan relawan baru yang menunggu **verifikasi** Tim Ksatria.
 @if($pengajuan->kebutuhan->count())
 **Rincian kebutuhan:**
 @foreach($pengajuan->kebutuhan as $i => $k)
-{{ $i + 1 }}. {{ \App\Models\KebutuhanRelawan::JENIS[$k->jenis_relawan] ?? $k->jenis_relawan }} — {{ \App\Models\KebutuhanRelawan::JENIS_KELAMIN[$k->jenis_kelamin] ?? $k->jenis_kelamin }}@if($k->nominal_apresiasi) (Rp {{ number_format($k->nominal_apresiasi, 0, ',', '.') }})@endif
+{{ $i + 1 }}. {{ \App\Models\KebutuhanRelawan::JENIS[$k->jenis_relawan] ?? $k->jenis_relawan }} — {{ \App\Models\KebutuhanRelawan::JENIS_KELAMIN[$k->jenis_kelamin] ?? $k->jenis_kelamin }}{{-- @if($k->nominal_apresiasi) (Rp {{ number_format($k->nominal_apresiasi, 0, ',', '.') }})@endif --}}
 
 @endforeach
 @endif

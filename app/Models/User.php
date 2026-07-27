@@ -44,4 +44,9 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function isAdmin(): bool
+    {
+        return !empty($this->role) && str_starts_with(strtolower($this->role), 'admin');
+    }
 }

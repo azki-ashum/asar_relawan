@@ -71,7 +71,7 @@
                         <td class="cell-title wrap">{{ $p->judul }}<div class="small text-muted fw-normal">{{ $p->created_at->format('d M Y') }}</div></td>
                         <td data-label="Pengaju">{{ $p->user->name ?? '—' }}</td>
                         <td data-label="Divisi">{{ $p->divisi ?? '—' }}</td>
-                        <td data-label="Kebutuhan">{{ $p->kebutuhan_count }} baris</td>
+                        <td data-label="Kebutuhan">{{ $p->jumlah_relawan }} Relawan</td>
                         <td data-label="Status">@include('pengajuan._status', ['status' => $p->status])</td>
                         <td class="cell-actions text-end">
                             <div class="d-flex gap-1 justify-content-end flex-wrap">
@@ -83,6 +83,10 @@
                                 @else
                                     <a href="{{ route('admin.pengajuan.show', $p) }}" class="btn btn-sm btn-light border">Detail</a>
                                 @endif
+                                <form action="{{ route('admin.pengajuan.destroy', $p) }}" method="post" class="swal-confirm" data-confirm="Hapus pengajuan ini secara permanen dari database?">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger" title="Hapus"><i class="bi bi-trash"></i></button>
+                                </form>
                             </div>
                         </td>
                     </tr>

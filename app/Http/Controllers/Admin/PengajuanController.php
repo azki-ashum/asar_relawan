@@ -147,7 +147,7 @@ class PengajuanController extends Controller
     public function assignKebutuhan(Request $request, Pengajuan $pengajuan, KebutuhanRelawan $kebutuhan)
     {
         $this->authorizeAdmin();
-        abort_unless($kebutuhan->pengajuan_id === $pengajuan->id, 404);
+        abort_unless((int)$kebutuhan->pengajuan_id === (int)$pengajuan->id, 404);
 
         $data = $request->validate([
             'relawan_id'       => 'nullable|exists:relawan,id',
@@ -193,7 +193,7 @@ class PengajuanController extends Controller
     public function unassignKebutuhan(Pengajuan $pengajuan, KebutuhanRelawan $kebutuhan)
     {
         $this->authorizeAdmin();
-        abort_unless($kebutuhan->pengajuan_id === $pengajuan->id, 404);
+        abort_unless((int)$kebutuhan->pengajuan_id === (int)$pengajuan->id, 404);
 
         if ($kebutuhan->relawan_id) {
             Relawan::where('id', $kebutuhan->relawan_id)->update(['status' => 'tersedia']);
@@ -241,6 +241,15 @@ class PengajuanController extends Controller
         }
         return redirect()->route('admin.pengajuan.show', $pengajuan)
             ->with('success', 'Pengajuan dikembalikan ke pengaju untuk revisi laporan.');
+    }
+
+    public function destroy(Pengajuan $pengajuan)
+    {
+        $this->authorizeAdmin();
+        $this->freeRelawan($pengajuan);
+        $pengajuan->delete();
+        Log::info('Pengajuan dihapus oleh admin', ['id' => $pengajuan->id, 'admin' => Auth::id()]);
+        return redirect()->route('admin.pengajuan.index')->with('success', 'Pengajuan berhasil dihapus.');
     }
 
     protected function freeRelawan(Pengajuan $pengajuan): void

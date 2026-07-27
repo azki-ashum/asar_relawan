@@ -89,7 +89,7 @@
         <div>
             <span class="fw-semibold">#{{ $idx + 1 }} · {{ $k->jenisLabel() }}</span>
             <span class="badge badge-soft-secondary ms-1">{{ $k->jenisKelaminLabel() }}</span>
-            @if($k->nominal_apresiasi)<span class="badge badge-soft-info ms-1">Rp {{ number_format($k->nominal_apresiasi, 0, ',', '.') }}</span>@endif
+            {{-- @if($k->nominal_apresiasi)<span class="badge badge-soft-info ms-1">Rp {{ number_format($k->nominal_apresiasi, 0, ',', '.') }}</span>@endif --}}
         </div>
         @if($k->isAssigned())<span class="badge badge-soft-success"><i class="bi bi-check-circle me-1"></i>Terisi</span>@else<span class="badge badge-soft-warning">Belum diisi</span>@endif
     </div>
