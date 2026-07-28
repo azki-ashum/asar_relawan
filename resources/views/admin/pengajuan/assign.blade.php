@@ -97,85 +97,82 @@
     </div>
 </div>
 
-@foreach($pengajuan->kebutuhan as $idx => $k)
-<div class="card border-0 shadow-sm mb-3">
-    <div class="card-header bg-white border-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <div>
-            <span class="fw-semibold">#{{ $idx + 1 }} · {{ $k->jenisLabel() }}</span>
-            <span class="badge badge-soft-secondary ms-1">{{ $k->jenisKelaminLabel() }}</span>
-            {{-- @if($k->nominal_apresiasi)<span class="badge badge-soft-info ms-1">Rp {{
-                number_format($k->nominal_apresiasi, 0, ',', '.') }}</span>@endif --}}
-        </div>
-        @if($k->isAssigned())<span class="badge badge-soft-success"><i
-                class="bi bi-check-circle me-1"></i>Terisi</span>@else<span class="badge badge-soft-warning">Belum
-            diisi</span>@endif
-    </div>
-    <div class="card-body">
-        @if($k->detail_tugas)<div class="small text-muted mb-2"><i class="bi bi-list-task me-1"></i>{{ $k->detail_tugas
-            }}</div>@endif
+@php
+$pending = $pengajuan->kebutuhan->filter(fn ($k) => !$k->isAssigned());
+@endphp
 
-        @if($k->isAssigned())
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 bg-light rounded p-2">
-            <div class="small">
-                <i class="bi bi-person-badge text-success me-1"></i><strong>{{ $k->assignedName() }}</strong>
-                @if($k->relawan_kontak) · {{ $k->relawan_kontak }}@endif
-                @if($k->relawan_domisili) · {{ $k->relawan_domisili }}@endif
-                @if(!$k->relawan_id)<span class="badge badge-soft-secondary ms-1">manual</span>@endif
-            </div>
-            <form action="{{ route('admin.pengajuan.kebutuhan.unassign', [$pengajuan, $k]) }}" method="post"
-                class="swal-confirm" data-confirm="Batalkan penugasan relawan ini?">
-                @csrf
-                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-lg me-1"></i>Batalkan</button>
-            </form>
-        </div>
-        @else
-        <form action="{{ route('admin.pengajuan.kebutuhan.assign', [$pengajuan, $k]) }}" method="post">
-            @csrf
-            <div class="mb-2">
-                <label class="form-label small mb-1">Pilih relawan tersedia ({{ $k->jenisLabel() }})</label>
-                <div class="d-flex align-items-center gap-2">
-                    <div class="flex-grow-1">
-                        <select name="relawan_id" class="form-select form-select-sm relawan-select"
-                            placeholder="-- Pilih --">
-                            <option value="">-- Pilih --</option>
-                            @foreach($candidates[$k->id] as $cand)
-                            <option value="{{ $cand->id }}">{{ $cand->nama }}@if($cand->domisili) — {{ $cand->domisili
-                                }}@endif @if($cand->jenis_kelamin) ({{ $cand->jenis_kelamin }})@endif</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <button type="submit"
-                        class="btn btn-success flex-shrink-0 d-inline-flex align-items-center justify-content-center"
-                        disabled style="height: 40px; padding: 0 1.25rem; border-radius: 12px; font-weight: 600;"><i
-                            class="bi bi-check-lg me-1"></i>Tugaskan</button>
-                </div>
-                @if($candidates[$k->id]->isEmpty())
-                <div class="form-text text-danger mt-1">Tidak ada relawan tersedia untuk jenis ini. <a
-                        href="{{ route('admin.relawan.create') }}">Tambah relawan baru</a>.</div>
-                @endif
-            </div>
-            {{-- Fitur isi manual dinonaktifkan sementara (bisa diaktifkan kembali dengan menghapus @if(false)) --}}
-            @if(false)
+<form action="{{ route('admin.pengajuan.kebutuhan.assign_bulk', $pengajuan) }}" method="post" id="bulk-assign-form">
+    @csrf
+    @foreach($pengajuan->kebutuhan as $idx => $k)
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white border-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div>
-                <a class="small text-decoration-none" data-bs-toggle="collapse" href="#manual{{ $k->id }}"
-                    role="button"><i class="bi bi-pencil-square me-1"></i>atau isi manual (Personal Volunteer
-                    Management)</a>
-                <div class="collapse mt-2" id="manual{{ $k->id }}">
-                    <div class="row g-2">
-                        <div class="col-md-4"><input type="text" name="relawan_nama"
-                                class="form-control form-control-sm" placeholder="Nama relawan"></div>
-                        <div class="col-md-4"><input type="text" name="relawan_kontak"
-                                class="form-control form-control-sm" placeholder="No HP"></div>
-                        <div class="col-md-4"><input type="text" name="relawan_domisili"
-                                class="form-control form-control-sm" placeholder="Domisili"></div>
-                    </div>
-                </div>
+                <span class="fw-semibold">#{{ $idx + 1 }} · {{ $k->jenisLabel() }}</span>
+                <span class="badge badge-soft-secondary ms-1">{{ $k->jenisKelaminLabel() }}</span>
             </div>
+            @if($k->isAssigned())<span class="badge badge-soft-success"><i
+                    class="bi bi-check-circle me-1"></i>Terisi</span>@else<span class="badge badge-soft-warning">Belum
+                diisi</span>@endif
+        </div>
+        <div class="card-body">
+            @if($k->detail_tugas)<div class="small text-muted mb-2"><i class="bi bi-list-task me-1"></i>{{
+                $k->detail_tugas }}</div>@endif
+
+            @if($k->isAssigned())
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 bg-light rounded p-2">
+                <div class="small">
+                    <i class="bi bi-person-badge text-success me-1"></i><strong>{{ $k->assignedName() }}</strong>
+                    @if($k->relawan_kontak) · {{ $k->relawan_kontak }}@endif
+                    @if($k->relawan_domisili) · {{ $k->relawan_domisili }}@endif
+                    @if(!$k->relawan_id)<span class="badge badge-soft-secondary ms-1">manual</span>@endif
+                </div>
+                {{-- Form unassign diletakkan di luar form bulk (lihat bawah) agar tidak nested --}}
+                <button type="submit" form="unassign-{{ $k->id }}" class="btn btn-sm btn-outline-danger"><i
+                        class="bi bi-x-lg me-1"></i>Batalkan</button>
+            </div>
+            @else
+            <label class="form-label small mb-1">Pilih relawan tersedia ({{ $k->jenisLabel() }})</label>
+            <select name="assign[{{ $k->id }}]" class="form-select form-select-sm relawan-select"
+                placeholder="-- Pilih --">
+                <option value="">-- Pilih --</option>
+                @foreach($candidates[$k->id] as $cand)
+                <option value="{{ $cand->id }}">{{ $cand->nama }}@if($cand->domisili) — {{ $cand->domisili
+                    }}@endif @if($cand->jenis_kelamin) ({{ $cand->jenis_kelamin }})@endif</option>
+                @endforeach
+            </select>
+            @if($candidates[$k->id]->isEmpty())
+            <div class="form-text text-danger mt-1">Tidak ada relawan tersedia untuk jenis ini. <a
+                    href="{{ route('admin.relawan.create') }}">Tambah relawan baru</a>.</div>
             @endif
-        </form>
-        @endif
+            @endif
+        </div>
     </div>
-</div>
+    @endforeach
+
+    @if($pending->isNotEmpty())
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="small text-muted" id="bulk-hint">
+                <i class="bi bi-people me-1"></i>Pilih relawan untuk {{ $pending->count() }} kebutuhan di atas, lalu
+                tugaskan sekaligus dalam satu klik.
+            </div>
+            <button type="submit" id="bulk-assign-btn" class="btn btn-success" disabled>
+                <i class="bi bi-check-lg me-1"></i>Tugaskan{{ $pending->count() > 1 ? ' Semua' : '' }}
+                <span class="badge bg-white text-success ms-1 d-none" id="bulk-count">0</span>
+            </button>
+        </div>
+    </div>
+    @endif
+</form>
+
+{{-- Form pembatalan penugasan, di luar form bulk agar HTML tetap valid --}}
+@foreach($pengajuan->kebutuhan as $k)
+@if($k->isAssigned())
+<form id="unassign-{{ $k->id }}" action="{{ route('admin.pengajuan.kebutuhan.unassign', [$pengajuan, $k]) }}"
+    method="post" class="swal-confirm d-none" data-confirm="Batalkan penugasan relawan ini?">
+    @csrf
+</form>
+@endif
 @endforeach
 
 @if($pengajuan->status === 'disetujui')
@@ -206,73 +203,75 @@
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.relawan-select').forEach(function (el) {
-        var form = el.closest('form');
-        if (!form) return;
+    var selects = Array.prototype.slice.call(document.querySelectorAll('.relawan-select'));
+    if (!selects.length) return;
 
-        var submitBtn = form.querySelector('button[type="submit"]');
-        var manualCollapse = form.querySelector('.collapse');
-        var manualNameInput = form.querySelector('input[name="relawan_nama"]');
-        var manualPhoneInput = form.querySelector('input[name="relawan_kontak"]');
-        var manualDomisiliInput = form.querySelector('input[name="relawan_domisili"]');
+    var submitBtn = document.getElementById('bulk-assign-btn');
+    var countBadge = document.getElementById('bulk-count');
+    var hint = document.getElementById('bulk-hint');
+    var instances = [];
 
-        function checkSubmitState(tsInstance) {
-            if (!submitBtn) return;
-            var isManualOpen = manualCollapse && manualCollapse.classList.contains('show');
-            if (isManualOpen) {
-                var hasName = manualNameInput && manualNameInput.value.trim().length > 0;
-                submitBtn.disabled = !hasName;
-            } else {
-                var selectedVal = tsInstance ? tsInstance.getValue() : el.value;
-                var hasSelected = selectedVal && selectedVal.toString().trim() !== '';
-                submitBtn.disabled = !hasSelected;
-            }
+    // Relawan yang sudah dipilih di baris lain di-disable agar tidak dobel tugas.
+    function syncDuplicates() {
+        var taken = {};
+        instances.forEach(function (ts) {
+            var v = ts.getValue();
+            if (v) taken[v] = ts;
+        });
+
+        instances.forEach(function (ts) {
+            Object.keys(ts.options).forEach(function (val) {
+                if (!val) return;
+                var isTakenElsewhere = taken[val] && taken[val] !== ts;
+                var opt = ts.options[val];
+                if (!!opt.disabled !== !!isTakenElsewhere) {
+                    ts.updateOption(val, Object.assign({}, opt, { disabled: isTakenElsewhere }));
+                }
+            });
+        });
+    }
+
+    function refreshState() {
+        var filled = instances.filter(function (ts) {
+            var v = ts.getValue();
+            return v && v.toString().trim() !== '';
+        }).length;
+
+        if (submitBtn) submitBtn.disabled = filled === 0;
+        if (countBadge) {
+            countBadge.textContent = filled;
+            countBadge.classList.toggle('d-none', filled === 0);
         }
+        if (hint) {
+            hint.innerHTML = filled === 0
+                ? '<i class="bi bi-people me-1"></i>Pilih relawan untuk ' + instances.length + ' kebutuhan di atas, lalu tugaskan sekaligus dalam satu klik.'
+                : '<i class="bi bi-check2-circle text-success me-1"></i>' + filled + ' dari ' + instances.length + ' kebutuhan siap ditugaskan.';
+        }
+    }
 
+    selects.forEach(function (el) {
         var ts = new TomSelect(el, {
             plugins: ['dropdown_input'],
             create: false,
             placeholder: '-- Pilih --',
             allowEmptyOption: true,
             maxOptions: null, // default Tom Select cuma 50 opsi; kandidat bisa ratusan
-            onInitialize: function() {
+            onInitialize: function () {
                 var input = this.dropdown.querySelector('.dropdown-input');
                 if (input) {
                     input.placeholder = 'Ketik untuk mencari relawan atau pilih...';
                 }
             },
-            onChange: function() {
-                checkSubmitState(this);
+            onChange: function () {
+                syncDuplicates();
+                refreshState();
             }
         });
-
-        if (manualCollapse) {
-            manualCollapse.addEventListener('show.bs.collapse', function () {
-                ts.clear();
-                ts.disable();
-                checkSubmitState(ts);
-            });
-            manualCollapse.addEventListener('shown.bs.collapse', function () {
-                checkSubmitState(ts);
-                if (manualNameInput) manualNameInput.focus();
-            });
-            manualCollapse.addEventListener('hide.bs.collapse', function () {
-                ts.enable();
-                if (manualNameInput) manualNameInput.value = '';
-                if (manualPhoneInput) manualPhoneInput.value = '';
-                if (manualDomisiliInput) manualDomisiliInput.value = '';
-                checkSubmitState(ts);
-            });
-        }
-
-        if (manualNameInput) {
-            manualNameInput.addEventListener('input', function () {
-                checkSubmitState(ts);
-            });
-        }
-
-        checkSubmitState(ts);
+        instances.push(ts);
     });
+
+    syncDuplicates();
+    refreshState();
 });
 </script>
 @endpush

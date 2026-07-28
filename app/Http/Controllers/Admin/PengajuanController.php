@@ -8,6 +8,7 @@ use App\Models\KebutuhanRelawan;
 use App\Models\Relawan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PengajuanController extends Controller
@@ -151,6 +152,66 @@ class PengajuanController extends Controller
         }
 
         return view('admin.pengajuan.assign', compact('pengajuan', 'candidates'));
+    }
+
+    /**
+     * Penugasan sekaligus (bulk) untuk seluruh baris kebutuhan dalam satu submit.
+     * Payload: assign[<kebutuhan_id>] = <relawan_id>
+     */
+    public function assignBulk(Request $request, Pengajuan $pengajuan)
+    {
+        $this->authorizeAdmin();
+
+        $data = $request->validate([
+            'assign'   => 'required|array',
+            'assign.*' => 'nullable|exists:relawan,id',
+        ], [
+            'assign.required' => 'Belum ada kebutuhan yang bisa ditugaskan.',
+            'assign.*.exists' => 'Relawan yang dipilih tidak ditemukan.',
+        ]);
+
+        // Buang baris yang tidak diisi
+        $selected = collect($data['assign'])->filter(fn($v) => !empty($v))->map(fn($v) => (int) $v);
+
+        if ($selected->isEmpty()) {
+            return back()->with('error', 'Pilih minimal satu relawan terlebih dahulu.');
+        }
+
+        if ($selected->duplicates()->isNotEmpty()) {
+            return back()->with('error', 'Relawan yang sama tidak boleh ditugaskan pada lebih dari satu kebutuhan.');
+        }
+
+        // Hanya kebutuhan milik pengajuan ini yang boleh diproses
+        $rows = $pengajuan->kebutuhan()->whereIn('id', $selected->keys()->all())->get();
+        if ($rows->count() !== $selected->count()) {
+            abort(404);
+        }
+
+        $relawan = Relawan::whereIn('id', $selected->values()->all())->get()->keyBy('id');
+
+        DB::transaction(function () use ($rows, $selected, $relawan) {
+            foreach ($rows as $k) {
+                $newId = $selected[$k->id];
+
+                // Bebaskan relawan lama bila diganti
+                if ($k->relawan_id && $k->relawan_id != $newId) {
+                    Relawan::where('id', $k->relawan_id)->update(['status' => 'tersedia']);
+                }
+
+                $r = $relawan[$newId];
+                $r->update(['status' => 'ditugaskan']);
+                $k->update([
+                    'relawan_id'       => $r->id,
+                    'relawan_nama'     => $r->nama,
+                    'relawan_kontak'   => $r->kontak,
+                    'relawan_domisili' => $r->domisili,
+                    'assigned_at'      => now(),
+                ]);
+            }
+        });
+
+        return redirect()->route('admin.pengajuan.assign_form', $pengajuan)
+            ->with('success', $rows->count() . ' relawan berhasil ditugaskan.');
     }
 
     public function assignKebutuhan(Request $request, Pengajuan $pengajuan, KebutuhanRelawan $kebutuhan)

@@ -11,11 +11,11 @@ use App\Http\Controllers\Admin\PengajuanController as AdminPengajuanController;
 use Illuminate\Support\Facades\Artisan;
 
 Route::get('/clear-caches', function () {
-  Artisan::call('cache:clear');
-  Artisan::call('route:clear');
-  Artisan::call('config:clear');
-  Artisan::call('view:clear');
-  return "All caches cleared!";
+    Artisan::call('cache:clear');
+    Artisan::call('route:clear');
+    Artisan::call('config:clear');
+    Artisan::call('view:clear');
+    return "All caches cleared!";
 });
 
 // Fallback: redirect any undefined route to the homepage
@@ -85,6 +85,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/pengajuan/{pengajuan}/reject', [AdminPengajuanController::class, 'reject'])->name('admin.pengajuan.reject');
     // Bagian 2: Penugasan per baris kebutuhan
     Route::get('/admin/pengajuan/{pengajuan}/assign', [AdminPengajuanController::class, 'assignForm'])->name('admin.pengajuan.assign_form');
+    Route::post('/admin/pengajuan/{pengajuan}/kebutuhan/assign-bulk', [AdminPengajuanController::class, 'assignBulk'])->name('admin.pengajuan.kebutuhan.assign_bulk');
     Route::post('/admin/pengajuan/{pengajuan}/kebutuhan/{kebutuhan}/assign', [AdminPengajuanController::class, 'assignKebutuhan'])->name('admin.pengajuan.kebutuhan.assign');
     Route::post('/admin/pengajuan/{pengajuan}/kebutuhan/{kebutuhan}/unassign', [AdminPengajuanController::class, 'unassignKebutuhan'])->name('admin.pengajuan.kebutuhan.unassign');
     Route::post('/admin/pengajuan/{pengajuan}/tugaskan', [AdminPengajuanController::class, 'tugaskan'])->name('admin.pengajuan.tugaskan');
