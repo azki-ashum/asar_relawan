@@ -22,3 +22,8 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Berkas sumber data pribadi (NIK, alamat, kontak) — jangan ikut ter-commit
+*.xlsx
+*.xls
+*.csv

@@ -18,14 +18,35 @@ class Relawan extends Model
         'kontak',
         'email',
         'domisili',
+        'tahun_bergabung',
+        'provinsi',
+        'kota',
         'bidang_relawan_id',
         'keahlian',
         'status',
         'catatan',
     ];
 
-    /** Jenis relawan — sama dengan taksonomi kebutuhan. */
-    public const JENIS = KebutuhanRelawan::JENIS;
+    protected $casts = [
+        'tahun_bergabung' => 'integer',
+    ];
+
+    /**
+     * Jenis relawan. Memuat seluruh taksonomi kebutuhan (agar pencocokan
+     * penugasan tetap jalan) ditambah bidang kerelawanan Ksatria yang belum
+     * terwakili di form pengajuan.
+     */
+    public const JENIS = [
+        'driver'                 => 'Driver',
+        'medis'                  => 'Medis',
+        'implementasi'           => 'Implementasi',
+        'media_dokumentasi'      => 'Media / Dokumentasi',
+        'canvassing_booth'       => 'Canvassing / Booth',
+        'rescue'                 => 'Rescue Emergency',
+        'psikososial_pendidikan' => 'Psikososial / Pendidikan',
+        'filantropi'             => 'Filantropi (Kemitraan Jejaring)',
+        'lainnya'                => 'Lainnya',
+    ];
 
     /** Jenis kelamin relawan (individu). */
     public const JENIS_KELAMIN = [

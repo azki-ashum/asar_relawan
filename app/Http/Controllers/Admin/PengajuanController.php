@@ -29,8 +29,8 @@ class PengajuanController extends Controller
         if ($search = $request->get('q')) {
             $query->where(function ($q) use ($search) {
                 $q->where('judul', 'like', "%$search%")
-                  ->orWhere('divisi', 'like', "%$search%")
-                  ->orWhereHas('user', fn ($uq) => $uq->where('name', 'like', "%$search%"));
+                    ->orWhere('divisi', 'like', "%$search%")
+                    ->orWhereHas('user', fn($uq) => $uq->where('name', 'like', "%$search%"));
             });
         }
         if ($status = $request->get('status')) {
@@ -113,20 +113,29 @@ class PengajuanController extends Controller
         // Kandidat relawan per baris: jenis cocok, tersedia (+ yang sudah dipilih), gender sesuai
         $candidates = [];
         foreach ($pengajuan->kebutuhan as $k) {
+            // Jenis di luar taksonomi Relawan (teks bebas dari "Lainnya") tidak bisa
+            // dicocokkan by jenis, jadi tampilkan semua relawan tersedia (difilter gender saja).
+            $isKnownJenis = array_key_exists($k->jenis_relawan, Relawan::JENIS);
+
             $q = Relawan::where(function ($qq) use ($k) {
-                $qq->where('jenis', $k->jenis_relawan)
-                   ->orWhere('jenis', 'lainnya');
-            })->where(function ($qq) use ($k) {
                 $qq->where('status', 'tersedia');
                 if ($k->relawan_id) $qq->orWhere('id', $k->relawan_id);
             });
+            if ($isKnownJenis) {
+                $q->where(function ($qq) use ($k) {
+                    $qq->where('jenis', $k->jenis_relawan)
+                        ->orWhere('jenis', 'lainnya');
+                });
+            }
             if (in_array($k->jenis_kelamin, ['L', 'P'])) {
                 $q->where(function ($qq) use ($k) {
                     $qq->where('jenis_kelamin', $k->jenis_kelamin)->orWhereNull('jenis_kelamin');
                 });
             }
             $list = $q->orderBy('nama')->get();
-            if ($list->isEmpty()) {
+
+            // Fallback: jenis dikenal tapi tak ada kandidat sama sekali -> perluas ke semua jenis.
+            if ($isKnownJenis && $list->isEmpty()) {
                 $fq = Relawan::where(function ($qq) use ($k) {
                     $qq->where('status', 'tersedia');
                     if ($k->relawan_id) $qq->orWhere('id', $k->relawan_id);

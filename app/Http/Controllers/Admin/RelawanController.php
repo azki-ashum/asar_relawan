@@ -31,9 +31,9 @@ class RelawanController extends Controller
         if ($search = $request->get('q')) {
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', "%$search%")
-                  ->orWhere('keahlian', 'like', "%$search%")
-                  ->orWhere('domisili', 'like', "%$search%")
-                  ->orWhere('kontak', 'like', "%$search%");
+                    ->orWhere('keahlian', 'like', "%$search%")
+                    ->orWhere('domisili', 'like', "%$search%")
+                    ->orWhere('kontak', 'like', "%$search%");
             });
         }
 
@@ -68,6 +68,9 @@ class RelawanController extends Controller
             'kontak'            => 'nullable|string|max:100',
             'email'             => 'nullable|email|max:255',
             'domisili'          => 'nullable|string|max:255',
+            'provinsi'          => 'nullable|string|max:255',
+            'kota'              => 'nullable|string|max:255',
+            'tahun_bergabung'   => 'nullable|integer|min:2000|max:2100',
             'bidang_relawan_id' => 'nullable|exists:bidang_relawan,id',
             'keahlian'          => 'nullable|string',
             'status'            => ['nullable', Rule::in(array_keys(Relawan::STATUSES))],
@@ -98,6 +101,9 @@ class RelawanController extends Controller
             'kontak'            => 'nullable|string|max:100',
             'email'             => 'nullable|email|max:255',
             'domisili'          => 'nullable|string|max:255',
+            'provinsi'          => 'nullable|string|max:255',
+            'kota'              => 'nullable|string|max:255',
+            'tahun_bergabung'   => 'nullable|integer|min:2000|max:2100',
             'bidang_relawan_id' => 'nullable|exists:bidang_relawan,id',
             'keahlian'          => 'nullable|string',
             'status'            => ['nullable', Rule::in(array_keys(Relawan::STATUSES))],
