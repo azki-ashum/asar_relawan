@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,10 +8,12 @@
     <title>@yield('title', config('app.name', 'Laravel'))</title>
     <!-- Favicon: use custom logo (PNG) with ICO fallback -->
     <link rel="icon" type="image/png" href="{{ asset('images/logo-white.png') }}">
-    {{-- <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" /> --}}
+    {{--
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" /> --}}
 
     <!-- Bootstrap 5 (CDN) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        crossorigin="anonymous">
 
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
@@ -22,89 +25,193 @@
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
 
     <!-- App CSS (kept for existing project styles) -->
-    {{-- <link rel="stylesheet" href="{{ asset('css/app.css') }}"> --}}
+    {{--
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}"> --}}
 
     <!-- Small layout helpers to improve mobile/tablet rendering -->
     <style>
         /* page background and central container width */
-        body.bg-light { background-color: #f6f7f9 !important; }
-        .app-container { max-width: 980px; }
+        body.bg-light {
+            background-color: #f6f7f9 !important;
+        }
+
+        .app-container {
+            max-width: 980px;
+        }
 
         /* make tables horizontally scrollable and touch friendly */
-        .table-responsive { -webkit-overflow-scrolling: touch; overflow-x: auto; }
+        .table-responsive {
+            -webkit-overflow-scrolling: touch;
+            overflow-x: auto;
+        }
 
         /* tighter table cell spacing and nicer wrapping for long titles */
-        .table th, .table td { vertical-align: middle; white-space: nowrap; }
-        .table td.wrap { white-space: normal; word-break: break-word; max-width: 220px; }
+        .table th,
+        .table td {
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .table td.wrap {
+            white-space: normal;
+            word-break: break-word;
+            max-width: 220px;
+        }
 
         /* compact badges for status labels */
-        .badge-status { font-weight: 600; padding: .35rem .6rem; border-radius: .375rem; }
+        .badge-status {
+            font-weight: 600;
+            padding: .35rem .6rem;
+            border-radius: .375rem;
+        }
 
         /* Center all badges' content vertically and horizontally */
-        .badge { display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
-        .badge .bi { line-height: 1; }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        /* ---- Perbaikan perataan ikon & teks (global) ----
+           Bootstrap Icons memberi offset vertical-align pada ::before.
+           Bila wrapper <i> juga diberi offset, ikon jadi turun dua kali dan
+           terlihat tidak sejajar dengan teks. Offset dipusatkan di wrapper. */
+        .bi {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            vertical-align: -0.125em;
+        }
+
+        .bi::before {
+            display: block;
+            line-height: 1;
+            vertical-align: baseline;
+        }
+
+        .btn,
+        .badge,
+        .nav-link,
+        .input-group-text {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .btn.w-100,
+        .btn.d-block {
+            display: inline-flex;
+            width: 100%;
+        }
+
+        /* Ikon sebagai flex item: perataan diurus induknya. */
+        .btn>.bi,
+        .badge>.bi,
+        .nav-link>.bi,
+        .dropdown-item>.bi,
+        .input-group-text>.bi,
+        .d-flex>.bi,
+        .d-inline-flex>.bi {
+            vertical-align: 0;
+            flex-shrink: 0;
+        }
+
+        .alert>.bi:first-child {
+            margin-right: .5rem;
+        }
 
         /* header action alignment */
-        .main-actions { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+        .main-actions {
+            display: flex;
+            gap: .5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
 
         @media (max-width: 576px) {
-            .navbar-brand { font-size: 1rem; }
-            .table th, .table td { font-size: .88rem; padding: .45rem .5rem; }
-            .btn-sm { padding: .25rem .5rem; }
-            .card { margin-bottom: .5rem; }
+            .navbar-brand {
+                font-size: 1rem;
+            }
+
+            .table th,
+            .table td {
+                font-size: .88rem;
+                padding: .45rem .5rem;
+            }
+
+            .btn-sm {
+                padding: .25rem .5rem;
+            }
+
+            .card {
+                margin-bottom: .5rem;
+            }
         }
     </style>
 
     @stack('head')
 </head>
+
 <body>
     {{-- Navigation (hidden on login page, root path, or choose page) --}}
     @unless(request()->routeIs('login') || request()->is('/') || request()->routeIs('choose'))
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
             @php
-                // Admin area: only super-admin (role === 'admin') on admin-scoped URLs
-                $isSuperAdmin = auth()->check() && auth()->user()->role === 'admin';
-                $isAdminArea  = $isSuperAdmin && (
-                                    request()->is('admin*')
-                                 || request()->is('room/admin*')
-                                 || request()->is('asset/admin*')
-                                );
-                // Asset area: only non-admin /asset/* pages (dashboard, bookings, etc.)
-                $isAssetArea = !$isAdminArea && request()->is('asset*');
+            // Admin area: only super-admin (role === 'admin') on admin-scoped URLs
+            $isSuperAdmin = auth()->check() && auth()->user()->role === 'admin';
+            $isAdminArea = $isSuperAdmin && (
+            request()->is('admin*')
+            || request()->is('room/admin*')
+            || request()->is('asset/admin*')
+            );
+            // Asset area: only non-admin /asset/* pages (dashboard, bookings, etc.)
+            $isAssetArea = !$isAdminArea && request()->is('asset*');
 
-                // --- admin area vars ---
-                $adminHubActive = request()->routeIs('admin.hub');
+            // --- admin area vars ---
+            $adminHubActive = request()->routeIs('admin.hub');
 
-                // --- room / asset area vars (unchanged logic) ---
-                $dashboardUrl = $isAssetArea ? url('/asset/dashboard') : route('dashboard');
-                $bookingsUrl = $isAssetArea ? url('/asset/bookings') : route('bookings.index');
-                $adminRoomsUrl = $isAssetArea ? url('/asset/admin/assets') : route('admin.rooms.index');
-                $adminRoomsLabel = $isAssetArea ? 'Manage Kendaraan' : 'Manage Ruangan';
-                $adminBookingsUrl = $isAssetArea ? url('/asset/admin/bookings') : route('admin.bookings.index');
-                $dashboardActive = ($isAssetArea && request()->is('asset/dashboard*')) || request()->routeIs('dashboard');
-                $bookingsActive = ($isAssetArea && request()->is('asset/bookings*')) || request()->routeIs('bookings.*');
+            // --- room / asset area vars (unchanged logic) ---
+            $dashboardUrl = $isAssetArea ? url('/asset/dashboard') : route('dashboard');
+            $bookingsUrl = $isAssetArea ? url('/asset/bookings') : route('bookings.index');
+            $adminRoomsUrl = $isAssetArea ? url('/asset/admin/assets') : route('admin.rooms.index');
+            $adminRoomsLabel = $isAssetArea ? 'Manage Kendaraan' : 'Manage Ruangan';
+            $adminBookingsUrl = $isAssetArea ? url('/asset/admin/bookings') : route('admin.bookings.index');
+            $dashboardActive = ($isAssetArea && request()->is('asset/dashboard*')) || request()->routeIs('dashboard');
+            $bookingsActive = ($isAssetArea && request()->is('asset/bookings*')) || request()->routeIs('bookings.*');
             @endphp
 
             @if($isAdminArea)
-                {{-- === ADMIN AREA BRAND === --}}
-                <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ route('admin.hub') }}">
-                    <span>SiBook</span>
-                    <span class="badge bg-dark text-white p-1 px-2 d-inline-block" style="font-size:0.65rem; border-radius:6px; line-height:1; box-shadow:0 1px 3px rgba(0,0,0,0.08);">Admin</span>
-                </a>
+            {{-- === ADMIN AREA BRAND === --}}
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ route('admin.hub') }}">
+                <span>SiBook</span>
+                <span class="badge bg-dark text-white p-1 px-2 d-inline-block"
+                    style="font-size:0.65rem; border-radius:6px; line-height:1; box-shadow:0 1px 3px rgba(0,0,0,0.08);">Admin</span>
+            </a>
             @else
-                {{-- === ROOM / ASSET AREA BRAND === --}}
-                <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ $dashboardUrl }}">
-                    <span>SiBook</span>
-                    @php
-                        $areaLabel = $isAssetArea ? 'Kendaraan' : 'Ruangan';
-                        $areaBadgeClass = $isAssetArea ? 'bg-success text-white' : 'bg-primary text-white';
-                    @endphp
-                    <span class="badge {{ $areaBadgeClass }} p-1 px-2 d-inline-block" style="font-size:0.65rem; border-radius:6px; line-height:1; box-shadow:0 1px 3px rgba(0,0,0,0.08);" title="Current area: {{ $areaLabel }}" aria-label="Current area: {{ $areaLabel }}">{{ $areaLabel }}</span>
-                </a>
+            {{-- === ROOM / ASSET AREA BRAND === --}}
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ $dashboardUrl }}">
+                <span>SiBook</span>
+                @php
+                $areaLabel = $isAssetArea ? 'Kendaraan' : 'Ruangan';
+                $areaBadgeClass = $isAssetArea ? 'bg-success text-white' : 'bg-primary text-white';
+                @endphp
+                <span class="badge {{ $areaBadgeClass }} p-1 px-2 d-inline-block"
+                    style="font-size:0.65rem; border-radius:6px; line-height:1; box-shadow:0 1px 3px rgba(0,0,0,0.08);"
+                    title="Current area: {{ $areaLabel }}" aria-label="Current area: {{ $areaLabel }}">{{ $areaLabel
+                    }}</span>
+            </a>
             @endif
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
@@ -114,23 +221,48 @@
                 {{-- === ADMIN AREA NAV LINKS === --}}
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">Dashboard</a>
+                        <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
+                            href="{{ route('admin.dashboard') }}">Dashboard</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {{ (request()->is('admin/users*') || request()->is('admin/blocked*') || request()->is('room/admin*') || request()->is('asset/admin*')) ? 'active' : '' }}"
-                           href="#" id="adminKelola" role="button" data-bs-toggle="dropdown" aria-expanded="false">Kelola</a>
+                            href="#" id="adminKelola" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">Kelola</a>
                         <ul class="dropdown-menu" aria-labelledby="adminKelola">
-                            <li><h6 class="dropdown-header">Aset</h6></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('admin.rooms.*') ? 'active' : '' }}" href="{{ route('admin.rooms.index') }}"><i class="bi bi-building-up me-2 text-primary"></i>Manage Ruangan</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('admin.assets.*') ? 'active' : '' }}" href="{{ route('admin.assets.index') }}"><i class="bi bi-car-front-fill me-2 text-success"></i>Manage Kendaraan</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><h6 class="dropdown-header">Booking</h6></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}" href="{{ route('admin.bookings.index') }}"><i class="bi bi-calendar2-check-fill me-2 text-warning"></i>Booking Ruangan</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('asset.admin.bookings.*') ? 'active' : '' }}" href="{{ route('asset.admin.bookings.index') }}"><i class="bi bi-calendar2-week-fill me-2 text-info"></i>Booking Kendaraan</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><h6 class="dropdown-header">Pengguna</h6></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}"><i class="bi bi-people-fill me-2 text-secondary"></i>Manage Users</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('admin.blocked_users.*') ? 'active' : '' }}" href="{{ route('admin.blocked_users.index') }}"><i class="bi bi-slash-circle-fill me-2 text-danger"></i>Blocked Users</a></li>
+                            <li>
+                                <h6 class="dropdown-header">Aset</h6>
+                            </li>
+                            <li><a class="dropdown-item {{ request()->routeIs('admin.rooms.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.rooms.index') }}"><i
+                                        class="bi bi-building-up me-2 text-primary"></i>Manage Ruangan</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('admin.assets.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.assets.index') }}"><i
+                                        class="bi bi-car-front-fill me-2 text-success"></i>Manage Kendaraan</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <h6 class="dropdown-header">Booking</h6>
+                            </li>
+                            <li><a class="dropdown-item {{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.bookings.index') }}"><i
+                                        class="bi bi-calendar2-check-fill me-2 text-warning"></i>Booking Ruangan</a>
+                            </li>
+                            <li><a class="dropdown-item {{ request()->routeIs('asset.admin.bookings.*') ? 'active' : '' }}"
+                                    href="{{ route('asset.admin.bookings.index') }}"><i
+                                        class="bi bi-calendar2-week-fill me-2 text-info"></i>Booking Kendaraan</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <h6 class="dropdown-header">Pengguna</h6>
+                            </li>
+                            <li><a class="dropdown-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.users.index') }}"><i
+                                        class="bi bi-people-fill me-2 text-secondary"></i>Manage Users</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('admin.blocked_users.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.blocked_users.index') }}"><i
+                                        class="bi bi-slash-circle-fill me-2 text-danger"></i>Blocked Users</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -139,7 +271,8 @@
                 {{-- === ROOM / ASSET AREA NAV LINKS === --}}
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link {{ $dashboardActive ? 'active' : '' }}" href="{{ $dashboardUrl }}">Dashboard</a>
+                        <a class="nav-link {{ $dashboardActive ? 'active' : '' }}"
+                            href="{{ $dashboardUrl }}">Dashboard</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ $bookingsActive ? 'active' : '' }}" href="{{ $bookingsUrl }}">Bookings</a>
@@ -149,22 +282,26 @@
 
                 <ul class="navbar-nav ms-auto">
                     @guest
-                        <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
                     @else
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{ Auth::user()->name ? Str::title(Auth::user()->name) : Auth::user()->email }}</a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-                                {{-- Switch dashboard (go to choose page where user can pick a dashboard) --}}
-                                <li><a class="dropdown-item" href="{{ route('choose') }}">Switch Dashboard</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form id="logout-form" action="{{ route('logout') }}" method="post" class="px-3 py-1">
-                                        @csrf
-                                        <button type="submit" class="btn btn-link text-decoration-none">Logout</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">{{ Auth::user()->name ?
+                            Str::title(Auth::user()->name) : Auth::user()->email }}</a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                            {{-- Switch dashboard (go to choose page where user can pick a dashboard) --}}
+                            <li><a class="dropdown-item" href="{{ route('choose') }}">Switch Dashboard</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <form id="logout-form" action="{{ route('logout') }}" method="post" class="px-3 py-1">
+                                    @csrf
+                                    <button type="submit" class="btn btn-link text-decoration-none">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
                     @endguest
                 </ul>
             </div>
@@ -173,31 +310,32 @@
     @endunless
 
     @if(request()->routeIs('login') || request()->is('/'))
-        {{-- Login/root page: render content without extra container/padding --}}
-        @yield('content')
+    {{-- Login/root page: render content without extra container/padding --}}
+    @yield('content')
     @else
-        <main class="pb-4">
-            <div class="container mt-4">
-                @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
-                @if(session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
-
-                @yield('content')
+    <main class="pb-4">
+        <div class="container mt-4">
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-        </main>
+            @endif
+            @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+
+            @yield('content')
+        </div>
+    </main>
     @endif
 
     <!-- Bootstrap Bundle with Popper (CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous">
+    </script>
 
     <!-- App JS (kept for existing project scripts) -->
     {{-- <script src="{{ asset('js/app.js') }}" defer></script> --}}
@@ -262,7 +400,8 @@
     </script>
 
     <!-- Global loading overlay used across the app -->
-    <div id="global-loading-overlay" class="d-none" aria-hidden="true" style="position:fixed;inset:0;z-index:2500;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.7);backdrop-filter:blur(2px);">
+    <div id="global-loading-overlay" class="d-none" aria-hidden="true"
+        style="position:fixed;inset:0;z-index:2500;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.7);backdrop-filter:blur(2px);">
         <div class="text-center">
             <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
                 <span class="visually-hidden">Loading...</span>
@@ -312,4 +451,5 @@
 
     @stack('scripts')
 </body>
+
 </html>
