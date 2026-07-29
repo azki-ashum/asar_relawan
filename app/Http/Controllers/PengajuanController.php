@@ -4,13 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Pengajuan;
 use App\Models\KebutuhanRelawan;
-use App\Models\User;
-use App\Mail\PengajuanBaruMail;
+use App\Services\PengajuanNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
 class PengajuanController extends Controller
@@ -103,15 +100,7 @@ class PengajuanController extends Controller
         });
 
         // Notifikasi email ke admin (SOP Bagian 1: Review & Verifikasi)
-        try {
-            $adminEmails = User::where('role', 'like', 'admin%')->whereNotNull('email')
-                ->pluck('email')->filter()->unique()->values();
-            if ($adminEmails->isNotEmpty()) {
-                Mail::to($adminEmails->all())->queue(new PengajuanBaruMail($pengajuan));
-            }
-        } catch (\Throwable $e) {
-            Log::warning('Gagal kirim email pengajuan baru', ['id' => $pengajuan->id, 'error' => $e->getMessage()]);
-        }
+        PengajuanNotifier::pengajuanBaru($pengajuan);
 
         return redirect()->route('pengajuan.show', $pengajuan)
             ->with('success', 'Pengajuan terkirim. Menunggu verifikasi Tim Ksatria.');

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Pengajuan;
 use App\Models\KebutuhanRelawan;
 use App\Models\Relawan;
+use App\Services\PengajuanNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -66,6 +67,7 @@ class PengajuanController extends Controller
         }
         $pengajuan->update(['status' => 'disetujui', 'catatan_revisi' => null]);
         Log::info('Pengajuan disetujui', ['id' => $pengajuan->id, 'admin' => Auth::id()]);
+        PengajuanNotifier::disetujui($pengajuan);
         return redirect()->route('admin.pengajuan.assign_form', $pengajuan)
             ->with('success', 'Pengajuan disetujui. Silakan cari & tugaskan relawan.');
     }
@@ -83,6 +85,7 @@ class PengajuanController extends Controller
             'revisi_count'   => ($pengajuan->revisi_count ?? 0) + 1,
         ]);
         Log::info('Pengajuan diminta revisi', ['id' => $pengajuan->id, 'admin' => Auth::id()]);
+        PengajuanNotifier::revisi($pengajuan);
         return redirect()->route('admin.pengajuan.index')
             ->with('success', 'Pengajuan dikembalikan ke pengaju untuk revisi.');
     }
@@ -98,6 +101,7 @@ class PengajuanController extends Controller
         $pengajuan->kebutuhan()->update(['relawan_id' => null, 'assigned_at' => null]);
         $pengajuan->update(['status' => 'ditolak', 'catatan_revisi' => $data['catatan_revisi'] ?? null]);
         Log::info('Pengajuan ditolak', ['id' => $pengajuan->id, 'admin' => Auth::id()]);
+        PengajuanNotifier::ditolak($pengajuan);
         return redirect()->route('admin.pengajuan.index')->with('success', 'Pengajuan ditolak.');
     }
 
@@ -286,6 +290,7 @@ class PengajuanController extends Controller
         }
         $pengajuan->update(['status' => 'ditugaskan']);
         Log::info('Pengajuan ditugaskan (siap deploy)', ['id' => $pengajuan->id, 'admin' => Auth::id()]);
+        PengajuanNotifier::ditugaskan($pengajuan);
         return redirect()->route('admin.pengajuan.show', $pengajuan)
             ->with('success', 'Relawan siap ditugaskan. Pengaju diberi tahu untuk deployment.');
     }
@@ -309,6 +314,7 @@ class PengajuanController extends Controller
         foreach ($pengajuan->kebutuhan as $k) {
             if ($k->relawan) $k->relawan->update(['status' => 'ditugaskan']);
         }
+        PengajuanNotifier::revisi($pengajuan, 'laporan');
         return redirect()->route('admin.pengajuan.show', $pengajuan)
             ->with('success', 'Pengajuan dikembalikan ke pengaju untuk revisi laporan.');
     }

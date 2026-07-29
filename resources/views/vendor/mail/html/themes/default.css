@@ -1,0 +1,329 @@
+/* =========================================================================
+   Tema email Asar Relawan — selaras dengan palet aplikasi
+   (brand #16a34a, ink #0f172a, bg #f4f7f5). CSS di file ini di-inline
+   otomatis oleh Laravel saat email dirender.
+   ========================================================================= */
+
+/* Base */
+
+body,
+body *:not(html):not(style):not(br):not(tr):not(code) {
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    position: relative;
+}
+
+body {
+    -webkit-text-size-adjust: none;
+    background-color: #f4f7f5;
+    color: #475569;
+    height: 100%;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    width: 100% !important;
+}
+
+p,
+ul,
+ol,
+blockquote {
+    line-height: 1.65;
+    text-align: left;
+}
+
+a {
+    color: #16a34a;
+    text-decoration: none;
+}
+
+a img {
+    border: none;
+}
+
+/* Typography */
+
+h1 {
+    color: #0f172a;
+    font-size: 23px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    margin-top: 0;
+    margin-bottom: 14px;
+    text-align: left;
+}
+
+h2 {
+    color: #0f172a;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+h3 {
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 8px;
+    text-align: left;
+}
+
+p {
+    color: #475569;
+    font-size: 15px;
+    line-height: 1.65;
+    margin-top: 0;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+p.sub {
+    font-size: 12px;
+}
+
+strong {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+img {
+    max-width: 100%;
+}
+
+/* Layout */
+
+.wrapper {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    background-color: #f4f7f5;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.content {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+/* Header */
+
+.header {
+    padding: 34px 0 22px;
+    text-align: center;
+}
+
+.header a {
+    color: #0f172a;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+}
+
+/* Logo */
+
+.logo {
+    height: 56px;
+    max-height: 56px;
+    width: 56px;
+}
+
+/* Body */
+
+.body {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    background-color: #f4f7f5;
+    border-bottom: 0;
+    border-top: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.inner-body {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 570px;
+    background-color: #ffffff;
+    border: 1px solid #e8ecf2;
+    border-top: 3px solid #16a34a;
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.05);
+    margin: 0 auto;
+    padding: 0;
+    width: 570px;
+}
+
+.inner-body a {
+    word-break: break-word;
+}
+
+.inner-body a.button {
+    color: #fff;
+}
+
+/* Subcopy */
+
+.subcopy {
+    border-top: 1px solid #eef2f6;
+    margin-top: 28px;
+    padding-top: 22px;
+}
+
+.subcopy p {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+/* Footer */
+
+.footer {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 570px;
+    margin: 0 auto;
+    padding: 0;
+    text-align: center;
+    width: 570px;
+}
+
+.footer p {
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.footer a {
+    color: #64748b;
+    text-decoration: underline;
+}
+
+/* Tables (komponen mail::table) */
+
+.table table {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    margin: 26px auto;
+    width: 100%;
+}
+
+.table th {
+    border-bottom: 1px solid #eef2f6;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    margin: 0;
+    padding-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.table td {
+    border-bottom: 1px solid #f4f7fa;
+    color: #334155;
+    font-size: 15px;
+    line-height: 22px;
+    margin: 0;
+    padding: 12px 0;
+}
+
+.content-cell {
+    max-width: 100vw;
+    padding: 38px 36px 34px;
+}
+
+/* Buttons */
+
+.action {
+    -premailer-cellpadding: 0;
+    -premailer-cellspacing: 0;
+    -premailer-width: 100%;
+    margin: 28px auto;
+    padding: 0;
+    text-align: center;
+    width: 100%;
+    float: unset;
+}
+
+.button {
+    -webkit-text-size-adjust: none;
+    border-radius: 10px;
+    color: #fff;
+    display: inline-block;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.button-blue,
+.button-primary,
+.button-green,
+.button-success {
+    background-color: #16a34a;
+    border-bottom: 13px solid #16a34a;
+    border-left: 26px solid #16a34a;
+    border-right: 26px solid #16a34a;
+    border-top: 13px solid #16a34a;
+}
+
+.button-red,
+.button-error {
+    background-color: #e5484d;
+    border-bottom: 13px solid #e5484d;
+    border-left: 26px solid #e5484d;
+    border-right: 26px solid #e5484d;
+    border-top: 13px solid #e5484d;
+}
+
+/* Panels (komponen mail::panel) */
+
+.panel {
+    border-left: 4px solid #16a34a;
+    border-radius: 10px;
+    margin: 24px 0;
+    overflow: hidden;
+}
+
+.panel-content {
+    background-color: #f8fafc;
+    color: #475569;
+    padding: 18px 20px;
+}
+
+.panel-content p {
+    color: #475569;
+    margin-bottom: 0;
+}
+
+.panel-item {
+    padding: 0;
+}
+
+.panel-item p:last-of-type {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Utilities */
+
+.break-all {
+    word-break: break-all;
+}
