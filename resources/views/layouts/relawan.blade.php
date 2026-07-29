@@ -281,14 +281,73 @@
             border-color: var(--line);
         }
 
-        .btn-outline-primary {
-            color: var(--brand-700);
-            border-color: var(--brand-600);
+        /* Varian outline dibuat solid (bukan putih + border berwarna) agar konsisten di seluruh halaman. */
+        .btn-outline-primary,
+        .btn-outline-success,
+        .btn-outline-danger,
+        .btn-outline-warning,
+        .btn-outline-info,
+        .btn-outline-secondary,
+        .btn-outline-dark {
+            border: none;
+            color: #fff;
         }
 
-        .btn-outline-primary:hover {
+        .btn-outline-primary,
+        .btn-outline-success {
             background: var(--brand-600);
-            border-color: var(--brand-600);
+            box-shadow: 0 2px 6px rgba(22, 163, 74, .22);
+        }
+
+        .btn-outline-primary:hover,
+        .btn-outline-success:hover {
+            background: var(--brand-700);
+            color: #fff;
+        }
+
+        .btn-outline-danger {
+            background: var(--bs-danger);
+        }
+
+        .btn-outline-danger:hover {
+            background: #c2373c;
+            color: #fff;
+        }
+
+        .btn-outline-warning {
+            background: var(--bs-warning);
+        }
+
+        .btn-outline-warning:hover {
+            background: #d97c09;
+            color: #fff;
+        }
+
+        .btn-outline-info {
+            background: var(--bs-info);
+        }
+
+        .btn-outline-info:hover {
+            background: #0b8fc4;
+            color: #fff;
+        }
+
+        .btn-outline-secondary {
+            background: var(--muted);
+        }
+
+        .btn-outline-secondary:hover {
+            background: var(--ink-soft);
+            color: #fff;
+        }
+
+        .btn-outline-dark {
+            background: var(--ink);
+        }
+
+        .btn-outline-dark:hover {
+            background: #000;
+            color: #fff;
         }
 
         .btn-link {
@@ -1002,7 +1061,7 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('pengajuan.index') ? 'active fw-semibold' : '' }}"
                             href="{{ route('pengajuan.index') }}">
-                            <i class="bi bi-list-check me-1"></i>Pengajuan Saya
+                            <i class="bi bi-list-check me-1"></i>Semua Pengajuan
                         </a>
                     </li>
                     <li class="nav-item">

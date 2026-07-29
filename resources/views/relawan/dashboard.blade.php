@@ -82,7 +82,7 @@
         <div class="card shadow-sm h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Pengajuan Terbaru</h5>
-                <a href="{{ route('pengajuan.index') }}" class="btn btn-sm btn-link">Lihat semua <i
+                <a href="{{ route('pengajuan.index') }}" class="btn btn-sm btn-link text-decoration-none">Lihat semua <i
                         class="bi bi-arrow-right ms-1"></i></a>
             </div>
             <div class="card-body p-0">
