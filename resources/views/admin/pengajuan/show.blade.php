@@ -13,7 +13,7 @@
             @if(in_array($pengajuan->status, ['disetujui', 'ditugaskan']))
                 <a href="{{ route('admin.pengajuan.assign_form', $pengajuan) }}" class="btn btn-sm btn-success"><i class="bi bi-person-plus me-1"></i>Penugasan</a>
             @endif
-            @if(!in_array($pengajuan->status, ['selesai', 'ditolak']))
+            @if(!in_array($pengajuan->status, ['selesai', 'ditolak', 'diajukan']))
                 <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#rejectModal"><i class="bi bi-x-circle me-1"></i>Tolak</button>
             @endif
             <form action="{{ route('admin.pengajuan.destroy', $pengajuan) }}" method="post" class="swal-confirm" data-confirm="Hapus pengajuan ini secara permanen dari database?">
@@ -41,6 +41,7 @@
                 <button class="btn btn-success"><i class="bi bi-check2-circle me-1"></i>Setujui</button>
             </form>
             <button class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#revisiModal"><i class="bi bi-arrow-counterclockwise me-1"></i>Minta Revisi</button>
+            <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal"><i class="bi bi-x-circle me-1"></i>Tolak</button>
         </div>
     </div>
 </div>
