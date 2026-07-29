@@ -13,7 +13,7 @@
                 Y') }}</div>
             <h3 class="mb-1 text-white">Halo, {{ \Illuminate\Support\Str::title(auth()->user()->name ?? 'Pengaju') }} 👋
             </h3>
-            <div class="opacity-75">Ringkasan seluruh pengajuan kebutuhan relawan.</div>
+            <div class="opacity-75">Ringkasan pengajuan kebutuhan relawan Anda.</div>
         </div>
         <a href="{{ route('pengajuan.create') }}" class="btn btn-light fw-semibold"><i
                 class="bi bi-plus-lg me-1"></i>Buat Pengajuan</a>
@@ -82,8 +82,6 @@
         <div class="card shadow-sm h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Pengajuan Terbaru</h5>
-                <a href="{{ route('pengajuan.index') }}" class="btn btn-sm btn-link text-decoration-none">Lihat semua <i
-                        class="bi bi-arrow-right ms-1"></i></a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">

@@ -48,10 +48,11 @@ class PengajuanController extends Controller
         ];
     }
 
-    // Daftar seluruh pengajuan organisasi (bukan hanya milik pengaju saat ini)
+    // Daftar pengajuan milik akun yang sedang login (halaman "Pengajuan Saya").
     public function index(Request $request)
     {
         $query = Pengajuan::with('user')->withCount('kebutuhan')
+            ->where('user_id', Auth::id())
             ->orderByDesc('created_at');
 
         if ($search = $request->get('q')) {

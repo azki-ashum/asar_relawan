@@ -1,12 +1,12 @@
 @extends('layouts.relawan')
 
-@section('title', 'Semua Pengajuan')
+@section('title', 'Pengajuan Saya')
 
 @section('content')
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
     <div>
-        <h3 class="mb-0">Semua Pengajuan</h3>
-        <div class="text-muted small">Seluruh pengajuan kebutuhan relawan dari semua pengaju.</div>
+        <h3 class="mb-0">Pengajuan Saya</h3>
+        <div class="text-muted small">Seluruh pengajuan kebutuhan relawan yang Anda buat.</div>
     </div>
     <a href="{{ route('pengajuan.create') }}" class="btn btn-success head-actions"><i
             class="bi bi-plus-lg me-1"></i>Buat Pengajuan</a>

@@ -1061,7 +1061,7 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('pengajuan.index') ? 'active fw-semibold' : '' }}"
                             href="{{ route('pengajuan.index') }}">
-                            <i class="bi bi-list-check me-1"></i>Semua Pengajuan
+                            <i class="bi bi-list-check me-1"></i>Pengajuan Saya
                         </a>
                     </li>
                     <li class="nav-item">
