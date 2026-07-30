@@ -30,7 +30,7 @@
             @if($p->catatan_revisi)<span class="d-block small mt-1 opacity-75">Catatan: {{ $p->catatan_revisi
                 }}</span>@endif</div>
     </div>
-    <a href="{{ route('pengajuan.edit', $p) }}" class="btn btn-sm btn-warning">Perbaiki</a>
+    <a href="{{ route('pengajuan.edit', $p) }}" class="btn btn-sm btn-warning ms-auto">Perbaiki</a>
 </div>
 @else
 <div class="alert alert-info d-flex flex-wrap justify-content-between align-items-center gap-2">
@@ -40,7 +40,7 @@
             {{ $p->catatan_revisi ? 'Admin meminta revisi laporan.' : 'Unggah bukti & laporan untuk menyelesaikannya.'
             }}</div>
     </div>
-    <a href="{{ route('pengajuan.show', $p) }}" class="btn btn-sm btn-success">{{ $p->catatan_revisi ? 'Perbaiki
+    <a href="{{ route('pengajuan.show', $p) }}" class="btn btn-sm btn-success ms-auto">{{ $p->catatan_revisi ? 'Perbaiki
         Laporan' : 'Kirim Laporan' }}</a>
 </div>
 @endif

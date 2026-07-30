@@ -82,9 +82,9 @@
                     @if($k->detail_tugas)<div class="small text-muted mt-1" style="white-space:pre-line">{{ $k->detail_tugas }}</div>@endif
                     @if($k->isAssigned())
                     <div class="mt-2 pt-2 border-top small">
-                        <i class="bi bi-person-badge me-1 text-success"></i><strong>{{ $k->assignedName() }}</strong>
-                        @if($k->relawan_kontak) · <i class="bi bi-telephone me-1"></i>{{ $k->relawan_kontak }}@endif
-                        @if($k->relawan_domisili) · <i class="bi bi-geo-alt me-1"></i>{{ $k->relawan_domisili }}@endif
+                        <div><i class="bi bi-person-badge me-1 text-success"></i><strong>{{ $k->assignedName() }}</strong></div>
+                        @if($k->relawan_kontak)<div class="mt-1"><i class="bi bi-telephone me-1"></i>{{ $k->relawan_kontak }}</div>@endif
+                        @if($k->relawan_domisili)<div class="mt-1"><i class="bi bi-geo-alt me-1"></i>{{ $k->relawan_domisili }}</div>@endif
                     </div>
                     @endif
                 </div>

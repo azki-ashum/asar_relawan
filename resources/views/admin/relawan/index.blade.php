@@ -53,7 +53,7 @@
                         <th>Domisili</th>
                         <th>Kontak</th>
                         <th>Status</th>
-                        <th class="text-center" style="min-width:110px">Aksi</th>
+                        <th class="text-center" style="min-width:190px">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -73,10 +73,12 @@
                         </td>
                         <td class="cell-actions text-center">
                             <div class="d-flex gap-1 justify-content-center">
-                                <a href="{{ route('admin.relawan.edit', $r) }}" class="btn btn-sm btn-light border" title="Edit"><i class="bi bi-pencil"></i></a>
+                                <a href="{{ route('admin.relawan.edit', $r) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil me-1"></i>Edit</a>
                                 <form action="{{ route('admin.relawan.destroy', $r) }}" method="post" class="d-inline swal-confirm" data-confirm="Hapus relawan {{ $r->nama }}?">
                                     @csrf @method('DELETE')
-                                    <button class="btn btn-sm btn-light border text-danger" title="Hapus"><i class="bi bi-trash"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash me-1"></i>Hapus</button>
                                 </form>
                             </div>
                         </td>

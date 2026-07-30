@@ -79,13 +79,13 @@
                                     <a href="{{ route('admin.pengajuan.show', $p) }}" class="btn btn-sm btn-primary"><i class="bi bi-clipboard-check me-1"></i>Verifikasi</a>
                                 @elseif(in_array($p->status, ['disetujui', 'ditugaskan']))
                                     <a href="{{ route('admin.pengajuan.assign_form', $p) }}" class="btn btn-sm btn-success"><i class="bi bi-person-plus me-1"></i>Penugasan</a>
-                                    <a href="{{ route('admin.pengajuan.show', $p) }}" class="btn btn-sm btn-light border">Detail</a>
+                                    <a href="{{ route('admin.pengajuan.show', $p) }}" class="btn btn-sm btn-light border"><i class="bi bi-eye me-1"></i>Detail</a>
                                 @else
-                                    <a href="{{ route('admin.pengajuan.show', $p) }}" class="btn btn-sm btn-light border">Detail</a>
+                                    <a href="{{ route('admin.pengajuan.show', $p) }}" class="btn btn-sm btn-light border"><i class="bi bi-eye me-1"></i>Detail</a>
                                 @endif
                                 <form action="{{ route('admin.pengajuan.destroy', $p) }}" method="post" class="swal-confirm" data-confirm="Hapus pengajuan ini secara permanen dari database?">
                                     @csrf @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger" title="Hapus"><i class="bi bi-trash"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Hapus</button>
                                 </form>
                             </div>
                         </td>

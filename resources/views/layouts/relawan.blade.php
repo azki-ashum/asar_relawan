@@ -881,8 +881,16 @@
                 justify-content: stretch !important;
             }
 
-            .table-stack tbody td.cell-actions .d-flex>* {
+            /* form wrapping a lone submit button (eg. delete) shouldn't introduce its
+               own box, or its button ends up smaller than its <a> siblings */
+            .table-stack tbody td.cell-actions .d-flex>form {
+                display: contents !important;
+            }
+
+            .table-stack tbody td.cell-actions .d-flex>*,
+            .table-stack tbody td.cell-actions .d-flex>form>* {
                 flex: 1 1 0;
+                min-width: 0;
             }
 
             .table-stack tbody td.wrap {
