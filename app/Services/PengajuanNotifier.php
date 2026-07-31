@@ -7,6 +7,7 @@ use App\Mail\PengajuanDisetujuiMail;
 use App\Mail\PengajuanDitolakMail;
 use App\Mail\PengajuanDitugaskanMail;
 use App\Mail\PengajuanRevisiMail;
+use App\Mail\PengajuanTerlambatMail;
 use App\Models\Pengajuan;
 use App\Models\User;
 use Illuminate\Contracts\Mail\Mailable;
@@ -56,6 +57,21 @@ class PengajuanNotifier
         self::send(self::pengajuEmail($pengajuan), new PengajuanDitugaskanMail($pengajuan), 'relawan ditugaskan', $pengajuan);
     }
 
+    /**
+     * Batas laporan terlewat -> pengaju, admin di-cc supaya ikut memantau
+     * (SOP Bagian 3: Evaluasi & Pelaporan).
+     */
+    public static function terlambatLapor(Pengajuan $pengajuan): void
+    {
+        self::send(
+            self::pengajuEmail($pengajuan),
+            new PengajuanTerlambatMail($pengajuan),
+            'pengingat laporan terlambat',
+            $pengajuan,
+            self::adminEmails(),
+        );
+    }
+
     /** @return array<int, string> */
     protected static function adminEmails(): array
     {
@@ -71,16 +87,26 @@ class PengajuanNotifier
         return $email ? [$email] : [];
     }
 
-    /** @param array<int, string> $to */
-    protected static function send(array $to, Mailable $mailable, string $konteks, Pengajuan $pengajuan): void
+    /**
+     * @param array<int, string> $to
+     * @param array<int, string> $cc
+     */
+    protected static function send(array $to, Mailable $mailable, string $konteks, Pengajuan $pengajuan, array $cc = []): void
     {
         if (empty($to)) {
             Log::warning("Notifikasi email dilewati ($konteks): tidak ada penerima", ['pengajuan_id' => $pengajuan->id]);
             return;
         }
 
+        // Jangan kirim ganda bila penerima utama kebetulan juga admin.
+        $cc = array_values(array_diff($cc, $to));
+
         try {
-            Mail::to($to)->queue($mailable);
+            $pending = Mail::to($to);
+            if ($cc) {
+                $pending->cc($cc);
+            }
+            $pending->queue($mailable);
         } catch (\Throwable $e) {
             Log::warning("Gagal kirim email $konteks", ['pengajuan_id' => $pengajuan->id, 'error' => $e->getMessage()]);
         }

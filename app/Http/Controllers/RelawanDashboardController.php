@@ -19,6 +19,7 @@ class RelawanDashboardController extends Controller
             'menunggu'   => Pengajuan::where('user_id', $userId)->whereIn('status', ['diajukan', 'disetujui'])->count(),
             'ditugaskan' => Pengajuan::where('user_id', $userId)->where('status', 'ditugaskan')->count(),
             'selesai'    => Pengajuan::where('user_id', $userId)->where('status', 'selesai')->count(),
+            'ditolak'    => Pengajuan::where('user_id', $userId)->where('status', 'ditolak')->count(),
         ];
 
         // "Butuh aksi" khusus pengajuan milik akun ini, karena hanya pemilik

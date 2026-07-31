@@ -22,7 +22,22 @@
 
 {{-- Notifikasi aksi yang diperlukan --}}
 @foreach($needAction as $p)
-@if($p->status === 'revisi')
+@if($p->isTerlambatLapor())
+<div class="alert alert-danger d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div class="d-flex align-items-start gap-2">
+        <i class="bi bi-clock-history mt-1"></i>
+        <div>Kegiatan <strong>{{ $p->judul }}</strong> sudah selesai <strong>{{ $p->terlambatSelama() }}</strong> lalu,
+            laporan belum masuk.
+            <span class="d-block small mt-1 opacity-75">Batas laporan: {{ $p->batasLapor()->format('d M Y, H:i')
+                }}</span>
+            @if($p->catatan_revisi)<span class="d-block small mt-1 opacity-75">Admin meminta revisi laporan: {{
+                $p->catatan_revisi }}</span>@endif
+        </div>
+    </div>
+    <a href="{{ route('pengajuan.show', $p) }}" class="btn btn-sm btn-danger ms-auto">{{ $p->catatan_revisi ? 'Perbaiki
+        Laporan' : 'Kirim Laporan' }}</a>
+</div>
+@elseif($p->status === 'revisi')
 <div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2">
     <div class="d-flex align-items-start gap-2">
         <i class="bi bi-arrow-counterclockwise mt-1"></i>
@@ -59,6 +74,7 @@
             ['label' => 'Ditugaskan', 'value' => $counts['ditugaskan'], 'icon' => 'bi-person-check', 'color' =>
             'text-warning'],
             ['label' => 'Selesai', 'value' => $counts['selesai'], 'icon' => 'bi-flag', 'color' => 'text-success'],
+            ['label' => 'Ditolak', 'value' => $counts['ditolak'], 'icon' => 'bi-x-circle', 'color' => 'text-danger'],
             ];
             @endphp
             @foreach($tiles as $t)

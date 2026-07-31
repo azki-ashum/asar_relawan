@@ -17,10 +17,11 @@
             ['label' => 'Menunggu Verifikasi', 'value' => $counts['diajukan'],   'color' => 'text-secondary', 'icon' => 'bi-inbox', 'status' => 'diajukan'],
             ['label' => 'Perlu Penugasan',     'value' => $counts['disetujui'],  'color' => 'text-info',      'icon' => 'bi-search', 'status' => 'disetujui'],
             ['label' => 'Sedang Berjalan',     'value' => $counts['ditugaskan'], 'color' => 'text-warning',   'icon' => 'bi-person-check', 'status' => 'ditugaskan'],
+            ['label' => 'Terlambat Lapor',     'value' => $counts['terlambat'],  'color' => 'text-danger',    'icon' => 'bi-clock-history', 'status' => \App\Models\Pengajuan::FILTER_TERLAMBAT],
         ];
     @endphp
     @foreach($queue as $q)
-    <div class="col-12 col-md-4">
+    <div class="col-6 col-md-3">
         <a href="{{ route('admin.pengajuan.index', ['status' => $q['status']]) }}" class="text-decoration-none">
             <div class="card border-0 shadow-sm stat-card">
                 <div class="card-body d-flex align-items-center justify-content-between py-3">
@@ -48,6 +49,8 @@
                     @foreach(\App\Models\Pengajuan::STATUSES as $key => $meta)
                         <option value="{{ $key }}" @selected(request('status') === $key)>{{ $meta['label'] }}</option>
                     @endforeach
+                    @php $filterTerlambat = \App\Models\Pengajuan::FILTER_TERLAMBAT; @endphp
+                    <option value="{{ $filterTerlambat }}" @selected(request('status') === $filterTerlambat)>Terlambat Lapor</option>
                 </select>
             </div>
             <div class="col-4 col-md-2 d-grid">
@@ -72,7 +75,12 @@
                         <td data-label="Pengaju">{{ $p->user->name ?? '—' }}</td>
                         <td data-label="Divisi">{{ $p->divisi ?? '—' }}</td>
                         <td data-label="Kebutuhan">{{ $p->jumlah_relawan }} Relawan</td>
-                        <td data-label="Status">@include('pengajuan._status', ['status' => $p->status])</td>
+                        <td data-label="Status">
+                            <div class="d-inline-flex flex-wrap gap-1">
+                                @include('pengajuan._status', ['status' => $p->status])
+                                @include('pengajuan._terlambat', ['pengajuan' => $p])
+                            </div>
+                        </td>
                         <td class="cell-actions text-end">
                             <div class="d-flex gap-1 justify-content-end flex-wrap">
                                 @if($p->status === 'diajukan')

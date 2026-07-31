@@ -8,6 +8,7 @@
         <div class="d-flex align-items-center gap-2 page-header-meta">
             <a href="{{ route('admin.pengajuan.index') }}" class="btn-back"><i class="bi bi-arrow-left"></i></a>
             @include('pengajuan._status', ['status' => $pengajuan->status])
+            @include('pengajuan._terlambat', ['pengajuan' => $pengajuan])
         </div>
         <div class="d-flex gap-2 flex-wrap head-actions">
             @if(in_array($pengajuan->status, ['disetujui', 'ditugaskan']))
@@ -110,7 +111,13 @@
                         <button class="btn btn-sm btn-outline-danger w-100"><i class="bi bi-arrow-counterclockwise me-1"></i>Minta Revisi Laporan</button>
                     </form>
                 @elseif($pengajuan->status === 'ditugaskan')
+                    @if($pengajuan->isTerlambatLapor())
+                        <div class="alert alert-danger py-2 small mb-2"><i class="bi bi-clock-history me-1"></i><strong>Terlambat {{ $pengajuan->terlambatSelama() }}.</strong> Batas laporan {{ $pengajuan->batasLapor()->format('d M Y, H:i') }} terlewat, pengaju belum mengirim bukti &amp; laporan.
+                            @if($pengajuan->terlambat_notified_at)<div class="mt-1">Pengingat terakhir dikirim {{ $pengajuan->terlambat_notified_at->format('d M Y, H:i') }}.</div>@endif
+                        </div>
+                    @endif
                     <div class="text-muted small"><i class="bi bi-hourglass-split me-1"></i>Menunggu pengaju mengunggah bukti &amp; laporan setelah deployment.
+                        @if($pengajuan->batasLapor())<div class="mt-1">Batas laporan: <strong>{{ $pengajuan->batasLapor()->format('d M Y, H:i') }}</strong></div>@endif
                         @if($pengajuan->catatan_revisi)<div class="mt-1 text-danger">Revisi diminta: {{ $pengajuan->catatan_revisi }}</div>@endif
                     </div>
                 @else

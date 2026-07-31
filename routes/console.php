@@ -28,6 +28,11 @@ Schedule::command('bookings:mark-started')->everyMinute()->after(function () {
     Log::info('Scheduler: bookings:mark-started dijalankan pada ' . now());
 });
 
+// tandai pengajuan relawan yang lewat waktu selesai tapi laporannya belum masuk
+Schedule::command('pengajuan:mark-terlambat')->everyFiveMinutes()->withoutOverlapping()->after(function () {
+    Log::info('Scheduler: pengajuan:mark-terlambat dijalankan pada ' . now());
+});
+
 // jalanin command booking:expire tiap menit (untuk testing)
 Schedule::command('booking:expire')
     ->everyMinute()

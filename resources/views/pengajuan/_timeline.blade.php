@@ -26,6 +26,12 @@
             </div>
         @endforeach
     </div>
+    @if($pengajuan->isTerlambatLapor())
+        <div class="alert alert-danger py-2.5 px-3 mb-0 mt-3 small d-flex align-items-center gap-2 rounded-3"><i class="bi bi-clock-history flex-shrink-0 fs-6"></i><div class="lh-sm"><strong>Terlambat lapor.</strong> Kegiatan sudah selesai {{ $pengajuan->terlambatSelama() }} lalu ({{ $pengajuan->waktu_selesai->format('d M Y, H:i') }}), bukti &amp; laporan belum masuk.</div></div>
+    @elseif($pengajuan->laporanTerlambat())
+        {{-- Laporan sudah masuk, tapi catatan keterlambatan tetap ditampilkan sebagai riwayat --}}
+        <div class="alert alert-warning py-2.5 px-3 mb-0 mt-3 small d-flex align-items-center gap-2 rounded-3"><i class="bi bi-clock-history flex-shrink-0 fs-6"></i><div class="lh-sm"><strong>Laporan terlambat{{ $pengajuan->laporanTerlambatSelama() ? ' ' . $pengajuan->laporanTerlambatSelama() : '' }}.</strong> Batas laporan {{ optional($pengajuan->batasLapor())->format('d M Y, H:i') }} sudah terlewat saat bukti &amp; laporan dikirim.</div></div>
+    @endif
     @if($pengajuan->status === 'revisi')
         <div class="alert alert-warning py-2.5 px-3 mb-0 mt-3 small d-flex align-items-center gap-2 rounded-3"><i class="bi bi-arrow-counterclockwise flex-shrink-0 fs-6"></i><div class="lh-sm"><strong>Perlu revisi.</strong> {{ $pengajuan->catatan_revisi }}</div></div>
     @elseif($pengajuan->status === 'ditolak')

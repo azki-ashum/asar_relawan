@@ -36,7 +36,11 @@ class PengajuanController extends Controller
             });
         }
         if ($status = $request->get('status')) {
-            $query->where('status', $status);
+            // "terlambat" bukan status di database, melainkan turunan dari
+            // waktu_selesai yang terlewat saat status masih "ditugaskan".
+            $status === Pengajuan::FILTER_TERLAMBAT
+                ? $query->terlambatLapor()
+                : $query->where('status', $status);
         }
 
         $pengajuan = $query->paginate(15)->withQueryString();
@@ -46,6 +50,7 @@ class PengajuanController extends Controller
             'diajukan'   => Pengajuan::where('status', 'diajukan')->count(),
             'disetujui'  => Pengajuan::where('status', 'disetujui')->count(),
             'ditugaskan' => Pengajuan::where('status', 'ditugaskan')->count(),
+            'terlambat'  => Pengajuan::terlambatLapor()->count(),
         ];
 
         return view('admin.pengajuan.index', compact('pengajuan', 'counts'));

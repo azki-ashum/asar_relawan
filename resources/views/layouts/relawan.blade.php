@@ -1195,8 +1195,10 @@
                 });
             }
 
-            // Auto-dismiss notifikasi sukses (biarkan daftar error validasi tetap tampil)
-            document.querySelectorAll('.alert-success, .alert-danger').forEach(function (el) {
+            // Auto-dismiss notifikasi flash sukses/gagal (session('success')/session('error')).
+            // Diselektor lewat .alert-dismissible supaya tidak menyasar banner status
+            // permanen (mis. "Terlambat Lapor") yang sengaja tidak punya class ini.
+            document.querySelectorAll('.alert-dismissible.alert-success, .alert-dismissible.alert-danger').forEach(function (el) {
                 if (el.querySelector('ul')) return;
                 setTimeout(function () {
                     try { bootstrap.Alert.getOrCreateInstance(el).close(); } catch (e) { el.style.display = 'none'; }

@@ -12,6 +12,22 @@
             class="bi bi-plus-lg me-1"></i>Buat Pengajuan</a>
 </div>
 
+{{-- Selalu tampil selama masih ada pengajuan yang lewat waktu selesai,
+     termasuk saat filter "Terlambat Lapor" sedang aktif. --}}
+@if(($terlambatCount ?? 0) > 0)
+@php $filterTerlambatAktif = request('status') === \App\Models\Pengajuan::FILTER_TERLAMBAT; @endphp
+<div class="alert alert-danger d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div class="d-flex align-items-start gap-2">
+        <i class="bi bi-clock-history mt-1"></i>
+        <div><strong>{{ $terlambatCount }} pengajuan</strong> sudah lewat waktu selesai tapi laporannya belum masuk.</div>
+    </div>
+    @unless($filterTerlambatAktif)
+    <a href="{{ route('pengajuan.index', ['status' => \App\Models\Pengajuan::FILTER_TERLAMBAT]) }}"
+        class="btn btn-sm btn-danger ms-auto">Lihat</a>
+    @endunless
+</div>
+@endif
+
 <div class="card border-0 shadow-sm">
     <div class="card-body">
         <form method="get" class="row g-2 mb-3">
@@ -25,6 +41,8 @@
                     @foreach(\App\Models\Pengajuan::STATUSES as $key => $meta)
                     <option value="{{ $key }}" @selected(request('status')===$key)>{{ $meta['label'] }}</option>
                     @endforeach
+                    @php $filterTerlambat = \App\Models\Pengajuan::FILTER_TERLAMBAT; @endphp
+                    <option value="{{ $filterTerlambat }}" @selected(request('status')===$filterTerlambat)>Terlambat Lapor</option>
                 </select>
             </div>
             <div class="col-4 col-md-2 d-grid">
@@ -57,7 +75,12 @@
                         <td data-label="Divisi">{{ $p->divisi ?? '—' }}</td>
                         <td data-label="Kebutuhan">{{ $p->jumlah_relawan }} Relawan</td>
                         <td data-label="Waktu">{{ optional($p->waktu_mulai)->format('d M Y') ?? '—' }}</td>
-                        <td data-label="Status">@include('pengajuan._status', ['status' => $p->status])</td>
+                        <td data-label="Status">
+                            <div class="d-inline-flex flex-wrap gap-1">
+                                @include('pengajuan._status', ['status' => $p->status])
+                                @include('pengajuan._terlambat', ['pengajuan' => $p])
+                            </div>
+                        </td>
                         <td class="cell-actions text-end">
                             <div class="d-inline-flex gap-1">
                                 <a href="{{ route('pengajuan.show', $p) }}"
