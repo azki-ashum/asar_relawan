@@ -9,17 +9,18 @@ use Illuminate\Support\Facades\Auth;
 
 class RelawanDashboardController extends Controller
 {
-    // Beranda (area Pengaju): ringkasan & daftar terbaru khusus pengajuan milik akun yang login.
+    // Beranda (area Pengaju): ringkasan organisasi (semua pengajuan) + notifikasi
+    // aksi yang khusus milik akun yang login (hanya pemilik yang bisa bertindak).
     public function index(Request $request)
     {
         $userId = Auth::id();
 
         $counts = [
-            'total'      => Pengajuan::where('user_id', $userId)->count(),
-            'menunggu'   => Pengajuan::where('user_id', $userId)->whereIn('status', ['diajukan', 'disetujui'])->count(),
-            'ditugaskan' => Pengajuan::where('user_id', $userId)->where('status', 'ditugaskan')->count(),
-            'selesai'    => Pengajuan::where('user_id', $userId)->where('status', 'selesai')->count(),
-            'ditolak'    => Pengajuan::where('user_id', $userId)->where('status', 'ditolak')->count(),
+            'total'      => Pengajuan::count(),
+            'menunggu'   => Pengajuan::whereIn('status', ['diajukan', 'disetujui'])->count(),
+            'ditugaskan' => Pengajuan::where('status', 'ditugaskan')->count(),
+            'selesai'    => Pengajuan::where('status', 'selesai')->count(),
+            'ditolak'    => Pengajuan::where('status', 'ditolak')->count(),
         ];
 
         // "Butuh aksi" khusus pengajuan milik akun ini, karena hanya pemilik
@@ -30,10 +31,9 @@ class RelawanDashboardController extends Controller
             ->orderByDesc('updated_at')
             ->get();
 
-        // Seluruh pengajuan berjadwal milik akun ini: sumber tunggal untuk kalender
+        // Seluruh pengajuan berjadwal (semua pengaju): sumber tunggal untuk kalender
         // (tanda titik + modal per tanggal) dan daftar "Pengajuan Minggu Ini".
-        $withSchedule = Pengajuan::withCount('kebutuhan')
-            ->where('user_id', $userId)
+        $withSchedule = Pengajuan::with('user')->withCount('kebutuhan')
             ->whereNotIn('status', ['ditolak'])
             ->whereNotNull('waktu_mulai')
             ->orderBy('waktu_mulai')
@@ -44,6 +44,7 @@ class RelawanDashboardController extends Controller
                 return [
                     'id'            => $p->id,
                     'judul'         => $p->judul,
+                    'pengaju'       => $p->nama_pic ?? ($p->user->name ?? null),
                     'divisi'        => $p->divisi,
                     'direktorat'    => $p->direktorat,
                     'lokasi'        => $p->lokasi,

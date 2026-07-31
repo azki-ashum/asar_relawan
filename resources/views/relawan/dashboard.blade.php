@@ -142,6 +142,9 @@
                                 <span class="badge {{ $p['status_class'] }} flex-shrink-0"><i
                                         class="bi {{ $p['status_icon'] }} me-1"></i>{{ $p['status_label'] }}</span>
                             </div>
+                            @if($p['pengaju'])
+                            <div class="text-muted small mt-1"><i class="bi bi-person me-1"></i>{{ $p['pengaju'] }}</div>
+                            @endif
                             <div class="text-muted small mt-2">
                                 <i class="bi bi-clock me-1"></i>
                                 @if($itemIsMultiDay)
