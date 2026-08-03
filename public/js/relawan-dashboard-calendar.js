@@ -89,8 +89,13 @@
                             ? '<div class="text-muted small mt-1"><i class="bi bi-person me-1"></i>' + escapeHtml(it.pengaju) + '</div>'
                             : '';
 
+                        const relawanNames = Array.isArray(it.relawan_names) ? it.relawan_names : [];
+                        const relawanLine = relawanNames.length
+                            ? '<div class="text-muted small mt-2"><i class="bi bi-person-badge me-1 text-success"></i>' + escapeHtml(relawanNames.join(', ')) + '</div>'
+                            : '';
+
                         return (
-                            '<a href="' + escapeHtml(it.url) + '" class="d-block border rounded-3 p-3 mb-2 text-decoration-none text-reset week-pengajuan-item">' +
+                            '<div class="border rounded-3 p-3 mb-2 week-pengajuan-item">' +
                             '<div class="d-flex flex-wrap align-items-center justify-content-between gap-2">' +
                             '<div class="fw-bold min-w-0">' + escapeHtml(it.judul) + '</div>' +
                             '<span class="badge ' + escapeHtml(it.status_class) + ' flex-shrink-0"><i class="bi ' + escapeHtml(it.status_icon) + ' me-1"></i>' + escapeHtml(it.status_label) + '</span>' +
@@ -98,7 +103,8 @@
                             pengajuLine +
                             '<div class="text-muted small mt-2"><i class="bi bi-clock me-1"></i>' + formatTimeRange(it.waktu_mulai, it.waktu_selesai) + '</div>' +
                             '<div class="mt-2 d-flex flex-wrap gap-2">' + meta.join('') + '</div>' +
-                            '</a>'
+                            relawanLine +
+                            '</div>'
                         );
                     })
                     .join('');

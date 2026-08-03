@@ -33,7 +33,7 @@ class RelawanDashboardController extends Controller
 
         // Seluruh pengajuan berjadwal (semua pengaju): sumber tunggal untuk kalender
         // (tanda titik + modal per tanggal) dan daftar "Pengajuan Minggu Ini".
-        $withSchedule = Pengajuan::with('user')->withCount('kebutuhan')
+        $withSchedule = Pengajuan::with(['user', 'kebutuhan.relawan'])->withCount('kebutuhan')
             ->whereNotIn('status', ['ditolak'])
             ->whereNotNull('waktu_mulai')
             ->orderBy('waktu_mulai')
@@ -42,20 +42,21 @@ class RelawanDashboardController extends Controller
                 $meta = $p->statusMeta();
 
                 return [
-                    'id'            => $p->id,
-                    'judul'         => $p->judul,
-                    'pengaju'       => $p->nama_pic ?? ($p->user->name ?? null),
-                    'divisi'        => $p->divisi,
-                    'direktorat'    => $p->direktorat,
-                    'lokasi'        => $p->lokasi,
-                    'kebutuhan'     => $p->kebutuhan_count,
-                    'waktu_mulai'   => $p->waktu_mulai->toIso8601String(),
-                    'waktu_selesai' => optional($p->waktu_selesai)->toIso8601String(),
-                    'status'        => $p->status,
-                    'status_label'  => $meta['label'],
-                    'status_class'  => $meta['class'],
-                    'status_icon'   => $meta['icon'],
-                    'url'           => route('pengajuan.show', $p),
+                    'id'             => $p->id,
+                    'judul'          => $p->judul,
+                    'pengaju'        => $p->nama_pic ?? ($p->user->name ?? null),
+                    'divisi'         => $p->divisi,
+                    'direktorat'     => $p->direktorat,
+                    'lokasi'         => $p->lokasi,
+                    'kebutuhan'      => $p->kebutuhan_count,
+                    'relawan_names'  => $p->kebutuhan->filter->isAssigned()->map->assignedName()->filter()->values()->all(),
+                    'waktu_mulai'    => $p->waktu_mulai->toIso8601String(),
+                    'waktu_selesai'  => optional($p->waktu_selesai)->toIso8601String(),
+                    'status'         => $p->status,
+                    'status_label'   => $meta['label'],
+                    'status_class'   => $meta['class'],
+                    'status_icon'    => $meta['icon'],
+                    'url'            => route('pengajuan.show', $p),
                 ];
             });
 

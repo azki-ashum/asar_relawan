@@ -130,8 +130,7 @@
                         {{ $day['label'] }}</h6>
                     <div class="d-flex flex-column gap-2">
                         @foreach($day['items'] as $p)
-                        <a href="{{ route('pengajuan.show', $p['id']) }}"
-                            class="d-block border rounded-3 p-3 text-decoration-none text-reset week-pengajuan-item">
+                        <div class="border rounded-3 p-3 week-pengajuan-item">
                             @php
                             $itemStart = \Carbon\Carbon::parse($p['waktu_mulai']);
                             $itemEnd = $p['waktu_selesai'] ? \Carbon\Carbon::parse($p['waktu_selesai']) : null;
@@ -165,7 +164,12 @@
                                 <span class="badge bg-light text-dark border fw-normal"><i
                                         class="bi bi-people me-1"></i>{{ $p['kebutuhan'] }} Relawan</span>
                             </div>
-                        </a>
+                            @if(count($p['relawan_names']))
+                            <div class="text-muted small mt-2">
+                                <i class="bi bi-person-badge me-1 text-success"></i>{{ implode(', ', $p['relawan_names']) }}
+                            </div>
+                            @endif
+                        </div>
                         @endforeach
                     </div>
                 </div>
@@ -289,9 +293,8 @@
         z-index: 5;
     }
 
-    .week-pengajuan-item:hover {
-        background: var(--line-soft);
-        border-color: var(--line) !important;
+    .week-pengajuan-item {
+        cursor: default;
     }
 
     .min-w-0 {
