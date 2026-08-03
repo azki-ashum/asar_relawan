@@ -67,9 +67,76 @@ class Pengajuan extends Model
 
     public const TERLAMBAT_META = ['label' => 'Terlambat Lapor', 'class' => 'badge-soft-danger', 'icon' => 'bi-clock-history'];
 
+    public const LAPOR_TERLAMBAT_META = ['label' => 'Lapor terlambat', 'class' => 'badge-soft-secondary', 'icon' => 'bi-clock-history'];
+
+    /**
+     * Penanda "Terlewat Verifikasi" — lapisan di atas status pra-penugasan:
+     * kegiatan sudah mulai berjalan tapi relawan belum juga ditugaskan.
+     */
+    public const FILTER_TERLEWAT = 'terlewat';
+
+    public const TERLEWAT_META = ['label' => 'Terlewat Verifikasi', 'class' => 'badge-soft-danger', 'icon' => 'bi-calendar-x'];
+
+    /** Status yang belum melewati tahap verifikasi & penugasan. */
+    public const STATUS_PRA_PENUGASAN = ['diajukan', 'revisi', 'disetujui'];
+
+    /**
+     * Pilihan filter turunan pada dropdown daftar pengajuan — bukan nilai kolom
+     * `status`, melainkan kondisi jadwal yang dihitung saat query.
+     */
+    public const FILTER_TURUNAN = [
+        self::FILTER_TERLAMBAT => 'Terlambat Lapor',
+        self::FILTER_TERLEWAT  => 'Terlewat Verifikasi',
+    ];
+
     public function statusMeta(): array
     {
         return self::STATUSES[$this->status] ?? ['label' => ucfirst($this->status), 'class' => 'badge-soft-secondary', 'icon' => ''];
+    }
+
+    /**
+     * Penanda pendamping status (bukan pengganti) untuk pengajuan yang keluar
+     * jadwal: terlambat lapor, terlewat verifikasi, atau laporan masuk telat.
+     * Null bila tidak ada yang berlaku.
+     */
+    public function penandaMeta(): ?array
+    {
+        if ($this->isTerlambatLapor()) {
+            return self::TERLAMBAT_META + [
+                'title' => 'Kegiatan selesai ' . $this->terlambatSelama() . ' lalu, laporan belum masuk',
+            ];
+        }
+
+        if ($this->isTerlewatVerifikasi()) {
+            return self::TERLEWAT_META + [
+                'title' => 'Kegiatan sudah mulai ' . $this->terlewatSelama() . ' lalu, relawan belum ditugaskan',
+            ];
+        }
+
+        if ($this->laporanTerlambat()) {
+            return self::LAPOR_TERLAMBAT_META + [
+                'title' => 'Laporan masuk melewati batas waktu kegiatan',
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Status terakhir dalam satu badge — dipakai seluruh halaman: penanda
+     * kondisi terkini menggantikan status bila kegiatan sedang di luar jadwal.
+     * Pengecualian "Lapor terlambat" — itu catatan historis, status "Selesai"
+     * tetap lebih informatif untuk ditampilkan.
+     */
+    public function statusAkhirMeta(): array
+    {
+        $penanda = $this->penandaMeta();
+
+        if ($penanda && !$this->laporanTerlambat()) {
+            return $penanda;
+        }
+
+        return $this->statusMeta() + ['title' => null];
     }
 
     // ---- Terlambat lapor (SOP Bagian 3: batas Evaluasi & Pelaporan) ----
@@ -137,6 +204,70 @@ class Pengajuan extends Model
         return $query->where('status', 'ditugaskan')
             ->whereNotNull('waktu_selesai')
             ->where('waktu_selesai', '<=', now()->subMinutes(self::graceMenit()));
+    }
+
+    // ---- Terlewat verifikasi (kegiatan jalan tanpa relawan ditugaskan) ----
+
+    /** Kegiatan sudah mulai tapi pengajuan belum sampai tahap "ditugaskan". */
+    public function isTerlewatVerifikasi(): bool
+    {
+        return in_array($this->status, self::STATUS_PRA_PENUGASAN, true)
+            && $this->waktu_mulai?->isPast() === true;
+    }
+
+    /** Lama sejak kegiatan dimulai tanpa penugasan, mis. "2 hari 3 jam". */
+    public function terlewatSelama(): ?string
+    {
+        if (!$this->waktu_mulai || !$this->waktu_mulai->isPast()) {
+            return null;
+        }
+
+        return $this->waktu_mulai->diffForHumans(now(), ['parts' => 2, 'syntax' => Carbon::DIFF_ABSOLUTE]);
+    }
+
+    /** Seluruh pengajuan yang kegiatannya jalan tanpa relawan ditugaskan. */
+    public function scopeTerlewatVerifikasi(Builder $query): Builder
+    {
+        return $query->whereIn('status', self::STATUS_PRA_PENUGASAN)
+            ->whereNotNull('waktu_mulai')
+            ->where('waktu_mulai', '<=', now());
+    }
+
+    /**
+     * Terapkan pilihan dropdown "status": nilai kolom status apa adanya, atau
+     * salah satu filter turunan pada FILTER_TURUNAN.
+     */
+    public function scopeFilterStatus(Builder $query, ?string $status): Builder
+    {
+        return match ($status) {
+            null, ''               => $query,
+            self::FILTER_TERLAMBAT => $query->terlambatLapor(),
+            self::FILTER_TERLEWAT  => $query->terlewatVerifikasi(),
+            default                => $query->where('status', $status),
+        };
+    }
+
+    /**
+     * Kegiatan yang beririsan dengan rentang tanggal (format Y-m-d), bukan yang
+     * mulainya saja — supaya kegiatan lintas hari tetap ikut terjaring. Salah
+     * satu ujung boleh kosong untuk rentang terbuka.
+     */
+    public function scopeDalamRentang(Builder $query, ?string $dari, ?string $sampai): Builder
+    {
+        $dari  = $dari ? Carbon::parse($dari)->startOfDay() : null;
+        $sampai = $sampai ? Carbon::parse($sampai)->endOfDay() : null;
+
+        if ($dari) {
+            // waktu_selesai null = kegiatan sehari, pakai waktu_mulai sebagai ujung.
+            $query->where(fn ($q) => $q->where('waktu_selesai', '>=', $dari)
+                ->orWhere(fn ($q2) => $q2->whereNull('waktu_selesai')->where('waktu_mulai', '>=', $dari)));
+        }
+
+        if ($sampai) {
+            $query->where('waktu_mulai', '<=', $sampai);
+        }
+
+        return $query;
     }
 
     /** Posisi progres 1..4 pada timeline; revisi = mundur ke tahap Diajukan. */

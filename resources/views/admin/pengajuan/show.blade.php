@@ -7,8 +7,7 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
         <div class="d-flex align-items-center gap-2 page-header-meta">
             <a href="{{ route('admin.pengajuan.index') }}" class="btn-back"><i class="bi bi-arrow-left"></i></a>
-            @include('pengajuan._status', ['status' => $pengajuan->status])
-            @include('pengajuan._terlambat', ['pengajuan' => $pengajuan])
+            @include('pengajuan._status_akhir', ['pengajuan' => $pengajuan])
         </div>
         <div class="d-flex gap-2 flex-wrap head-actions">
             @if(in_array($pengajuan->status, ['disetujui', 'ditugaskan']))

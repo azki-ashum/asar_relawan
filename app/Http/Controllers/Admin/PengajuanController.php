@@ -7,6 +7,7 @@ use App\Models\Pengajuan;
 use App\Models\KebutuhanRelawan;
 use App\Models\Relawan;
 use App\Services\PengajuanNotifier;
+use App\Support\JadwalPengajuan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -35,25 +36,30 @@ class PengajuanController extends Controller
                     ->orWhereHas('user', fn($uq) => $uq->where('name', 'like', "%$search%"));
             });
         }
-        if ($status = $request->get('status')) {
-            // "terlambat" bukan status di database, melainkan turunan dari
-            // waktu_selesai yang terlewat saat status masih "ditugaskan".
-            $status === Pengajuan::FILTER_TERLAMBAT
-                ? $query->terlambatLapor()
-                : $query->where('status', $status);
-        }
+        // "terlambat" & "terlewat" bukan status di database, melainkan turunan
+        // dari jadwal yang lewat — lihat Pengajuan::FILTER_TURUNAN.
+        $query->filterStatus($request->get('status'))
+            ->dalamRentang($request->get('dari'), $request->get('sampai'));
 
         $pengajuan = $query->paginate(15)->withQueryString();
 
-        // Ringkasan antrean untuk header
+        // Ringkasan seluruh tahap alur + penanda di luar jadwal.
         $counts = [
             'diajukan'   => Pengajuan::where('status', 'diajukan')->count(),
+            'revisi'     => Pengajuan::where('status', 'revisi')->count(),
             'disetujui'  => Pengajuan::where('status', 'disetujui')->count(),
             'ditugaskan' => Pengajuan::where('status', 'ditugaskan')->count(),
+            'selesai'    => Pengajuan::where('status', 'selesai')->count(),
+            'ditolak'    => Pengajuan::where('status', 'ditolak')->count(),
             'terlambat'  => Pengajuan::terlambatLapor()->count(),
+            'terlewat'   => Pengajuan::terlewatVerifikasi()->count(),
         ];
 
-        return view('admin.pengajuan.index', compact('pengajuan', 'counts'));
+        // Kalender ringkas di kolom kiri — sumber data sama dengan Beranda Pengaju.
+        $withSchedule = JadwalPengajuan::items();
+        $calendarDates = JadwalPengajuan::tanggalBertanda($withSchedule);
+
+        return view('admin.pengajuan.index', compact('pengajuan', 'counts', 'withSchedule', 'calendarDates'));
     }
 
     public function show(Pengajuan $pengajuan)

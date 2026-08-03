@@ -41,8 +41,9 @@
                     @foreach(\App\Models\Pengajuan::STATUSES as $key => $meta)
                     <option value="{{ $key }}" @selected(request('status')===$key)>{{ $meta['label'] }}</option>
                     @endforeach
-                    @php $filterTerlambat = \App\Models\Pengajuan::FILTER_TERLAMBAT; @endphp
-                    <option value="{{ $filterTerlambat }}" @selected(request('status')===$filterTerlambat)>Terlambat Lapor</option>
+                    @foreach(\App\Models\Pengajuan::FILTER_TURUNAN as $key => $label)
+                    <option value="{{ $key }}" @selected(request('status')===$key)>{{ $label }}</option>
+                    @endforeach
                 </select>
             </div>
             <div class="col-4 col-md-2 d-grid">
@@ -76,10 +77,7 @@
                         <td data-label="Kebutuhan">{{ $p->jumlah_relawan }} Relawan</td>
                         <td data-label="Waktu">{{ optional($p->waktu_mulai)->format('d M Y') ?? '—' }}</td>
                         <td data-label="Status">
-                            <div class="d-inline-flex flex-wrap gap-1">
-                                @include('pengajuan._status', ['status' => $p->status])
-                                @include('pengajuan._terlambat', ['pengajuan' => $p])
-                            </div>
+                            @include('pengajuan._status_akhir', ['pengajuan' => $p])
                         </td>
                         <td class="cell-actions text-end">
                             <div class="d-inline-flex gap-1">

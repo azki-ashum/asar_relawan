@@ -94,11 +94,14 @@
                             ? '<div class="text-muted small mt-2"><i class="bi bi-person-badge me-1 text-success"></i>' + escapeHtml(relawanNames.join(', ')) + '</div>'
                             : '';
 
+                        // Satu badge saja — status_* sudah berisi kondisi terkini.
+                        const statusTitle = it.status_title ? ' title="' + escapeHtml(it.status_title) + '"' : '';
+
                         return (
                             '<div class="border rounded-3 p-3 mb-2 week-pengajuan-item">' +
                             '<div class="d-flex flex-wrap align-items-center justify-content-between gap-2">' +
                             '<div class="fw-bold min-w-0">' + escapeHtml(it.judul) + '</div>' +
-                            '<span class="badge ' + escapeHtml(it.status_class) + ' flex-shrink-0"><i class="bi ' + escapeHtml(it.status_icon) + ' me-1"></i>' + escapeHtml(it.status_label) + '</span>' +
+                            '<span class="badge ' + escapeHtml(it.status_class) + ' flex-shrink-0"' + statusTitle + '><i class="bi ' + escapeHtml(it.status_icon) + ' me-1"></i>' + escapeHtml(it.status_label) + '</span>' +
                             '</div>' +
                             pengajuLine +
                             '<div class="text-muted small mt-2"><i class="bi bi-clock me-1"></i>' + formatTimeRange(it.waktu_mulai, it.waktu_selesai) + '</div>' +

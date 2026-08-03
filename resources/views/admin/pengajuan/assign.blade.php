@@ -76,7 +76,7 @@
 <div class="page-header mb-3">
     <div class="d-flex align-items-center gap-2 mb-2">
         <a href="{{ route('admin.pengajuan.show', $pengajuan) }}" class="btn-back"><i class="bi bi-arrow-left"></i></a>
-        @include('pengajuan._status', ['status' => $pengajuan->status])
+        @include('pengajuan._status_akhir', ['pengajuan' => $pengajuan])
     </div>
     <h3 class="mb-0">Penugasan Relawan</h3>
 </div>

@@ -64,13 +64,9 @@ class PengajuanController extends Controller
             });
         }
 
-        if ($status = $request->get('status')) {
-            // "terlambat" bukan status di database, melainkan turunan dari
-            // waktu_selesai yang terlewat saat status masih "ditugaskan".
-            $status === Pengajuan::FILTER_TERLAMBAT
-                ? $query->terlambatLapor()
-                : $query->where('status', $status);
-        }
+        // "terlambat" & "terlewat" bukan status di database, melainkan turunan
+        // dari jadwal yang lewat — lihat Pengajuan::FILTER_TURUNAN.
+        $query->filterStatus($request->get('status'));
 
         $pengajuan = $query->paginate(10)->withQueryString();
 

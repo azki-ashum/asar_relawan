@@ -12,8 +12,7 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
         <div class="d-flex align-items-center gap-2 page-header-meta">
             <a href="{{ route('pengajuan.index') }}" class="btn-back"><i class="bi bi-arrow-left"></i></a>
-            @include('pengajuan._status', ['status' => $pengajuan->status])
-            @include('pengajuan._terlambat', ['pengajuan' => $pengajuan])
+            @include('pengajuan._status_akhir', ['pengajuan' => $pengajuan])
             @unless($canManage)
                 <span class="badge badge-soft-secondary"><i class="bi bi-eye me-1"></i>Lihat saja</span>
             @endunless

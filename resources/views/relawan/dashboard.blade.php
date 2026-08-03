@@ -138,7 +138,8 @@
                             @endphp
                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                                 <div class="fw-bold min-w-0">{{ $p['judul'] }}</div>
-                                <span class="badge {{ $p['status_class'] }} flex-shrink-0"><i
+                                <span class="badge {{ $p['status_class'] }} flex-shrink-0"
+                                    @if($p['status_title']) title="{{ $p['status_title'] }}" @endif><i
                                         class="bi {{ $p['status_icon'] }} me-1"></i>{{ $p['status_label'] }}</span>
                             </div>
                             @if($p['pengaju'])
