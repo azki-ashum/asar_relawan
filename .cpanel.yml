@@ -1,0 +1,15 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/asaf7358/public_html/relawan.asarhumanity.org
+    # CloudLinux alt-php83 (sesuai MultiPHP Manager)
+    - export PHP_BIN=/opt/alt/php83/usr/bin/php
+
+    - cd $DEPLOYPATH && $PHP_BIN artisan down || true
+    - cd $DEPLOYPATH && $PHP_BIN artisan migrate --force
+    - cd $DEPLOYPATH && $PHP_BIN artisan config:cache
+    - cd $DEPLOYPATH && $PHP_BIN artisan route:cache
+    - cd $DEPLOYPATH && $PHP_BIN artisan view:cache
+    - cd $DEPLOYPATH && $PHP_BIN artisan storage:link || true
+    - cd $DEPLOYPATH && $PHP_BIN artisan queue:restart
+    - cd $DEPLOYPATH && $PHP_BIN artisan up
