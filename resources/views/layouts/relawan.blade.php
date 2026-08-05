@@ -474,6 +474,19 @@
             font-weight: 600;
         }
 
+        /* ---- Footer ---- */
+        .app-footer {
+            padding: 1.25rem 0 1.5rem;
+            text-align: center;
+            font-size: .78rem;
+            color: var(--faint);
+        }
+
+        .app-footer-sep {
+            margin: 0 .35rem;
+            opacity: .6;
+        }
+
         /* ---- Stat cards ---- */
         .stat-card .card-body {
             padding: 1.15rem 1.25rem;
@@ -1156,6 +1169,14 @@
             @yield('content')
         </div>
     </main>
+
+    <footer class="app-footer">
+        <div class="container">
+            &copy; {{ date('Y') }} {{ config('app.name', 'Asar Relawan') }}
+            <span class="app-footer-sep">&middot;</span>
+            v{{ config('version.app') }}
+        </div>
+    </footer>
 
     {{-- Modal Bootstrap didorong ke sini (bukan di dalam #page-content) agar tidak terpengaruh
     animasi/transform ancestor manapun yang bisa mengacaukan position:fixed miliknya. --}}
