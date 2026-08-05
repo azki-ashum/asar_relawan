@@ -5,8 +5,6 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Pagination\Paginator;
-use App\Models\Booking;
-use App\Observers\BookingObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +25,5 @@ class AppServiceProvider extends ServiceProvider
         // lama (max key length 1000 bytes pada utf8mb4).
         Schema::defaultStringLength(191);
         Paginator::useBootstrapFive();
-        Booking::observe(BookingObserver::class);
     }
 }
